@@ -3,30 +3,34 @@
  * provide methods for holding a class without concentration 
  * on original SDK.
  * 
+ * Use public method of class Adapter as sink,
+ * And register event listener with methods like Adapater.localClient.on as stream
+ * === public methods like init class ===> | Adapter | === emit event ===> 
+ * 
  * By Hao Yang on Feb 2019
  */
 /// <reference types="./index" />
 
-import EventEmitter from 'wolfy87-eventemitter';
 import AgoraRTC from 'agora-rtc-sdk';
+
+import { ClientRole, VideoProfiles, Mode, Codec, StreamControlAction } from './constant';
 import { enhanceClient, enhanceStream } from '../AgoraProxy';
 
-class Adapter extends EventEmitter {
-  public constructor() {
-    super();
-    this.localUserInfo = {
-      role: ClientRole.AUDIENCE,
-      name: '',
-      uid: '',
-    };
-    this.localConfig = {
+class Adapter {
+  public constructor(config?: AdapterConfig, userInfo?: UserInfo) {
+    this.localConfig = Object.assign({
       appId: '',
-      channel: '',
+      channel: 'SampleClass',
       shareId: 2,
       mode: Mode.LIVE,
       codec: Codec.VP8,
       videoProfile: VideoProfiles.STANDARD,
-    };
+    }, config);
+    this.localUserInfo = Object.assign({
+      role: ClientRole.STUDENT,
+      name: 'Sam',
+      uid: Number(String(new Date().getTime()).slice(7)),
+    }, userInfo);
   }
 
   // ----------------  members ----------------
@@ -53,9 +57,9 @@ class Adapter extends EventEmitter {
 
   private resetStatus() {
     this.localUserInfo = {
-      role: ClientRole.AUDIENCE,
+      role: ClientRole.STUDENT,
       name: '',
-      uid: '',
+      uid: 0,
     };
     this.localConfig = {
       appId: '',
@@ -67,21 +71,28 @@ class Adapter extends EventEmitter {
     };
   }
 
-  public initProfile(config: AdapterConfig) {
+  get config() {
+    return this.localConfig;
+  }
+
+  public updateLocalConfig(config: AdapterConfig) {
     this.localConfig = Object.assign({}, this.localConfig, config);
+  }
+
+  get userInfo() {
+    return this.localUserInfo;
+  }
+
+  public updateLocalUserInfo(info: UserInfo) {
+    this.localUserInfo = Object.assign({}, this.localUserInfo, info);
   }
 
   public async initClass(appId: string, channel: string, userInfo: UserInfo) {
     // update localConfig and localUserInfo
-    const rand = Number(String(new Date().getTime()).slice(7))
-    this.localConfig = Object.assign({}, this.localConfig, {
+    this.updateLocalConfig({
       appId, channel
     });
-    this.localUserInfo = Object.assign({
-      role: ClientRole.AUDIENCE,
-      name: `guest${rand}`,
-      uid: rand,
-    }, this.localUserInfo, userInfo);
+    this.updateLocalUserInfo(userInfo)
 
     // init client
     const { mode, codec } = this.localConfig;
@@ -219,3 +230,5 @@ class Adapter extends EventEmitter {
   }
 
 }
+
+export default Adapter;

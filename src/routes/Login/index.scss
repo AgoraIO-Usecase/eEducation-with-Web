@@ -1,0 +1,94 @@
+#index {
+  background: url('../../assets/images/background.png') no-repeat center;
+  background-size: cover;
+  padding: 4.5rem;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 51rem;
+  min-height: 33rem;
+  position: relative;
+  .title {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1.5rem;
+    padding: 10px;
+
+  }
+  .mask {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    background: rgba(216, 216, 216, .3);
+  }
+
+  .main {
+    width: 42rem;
+    height: 24rem;
+    background: rgb(242, 249, 253);
+    border-radius: 1.1rem;
+    // padding: 1.1rem;
+    display: flex;
+    position: relative;
+
+    .bubble-1 {
+      position: absolute;
+      z-index: 11;
+      top: 16.5rem;
+      left: -1.5rem;
+      width: 3rem;
+      height: 3rem;
+    }
+
+    .bubble-2 {
+      position: absolute;
+      z-index: 11;
+      left: 15rem;
+      bottom: -2.125rem;
+      width: 4rem;
+      height: 4.25rem;
+    }
+  }
+
+  .content {
+    width: 50%;
+    border-top-left-radius: 1.1rem;
+    border-bottom-left-radius: 1.1rem;
+    padding: 30px 60px;
+    
+    header {
+      margin-bottom: 2rem;
+    }
+  }
+
+  .illustration {
+    border-top-right-radius: 1.1rem;
+    border-bottom-right-radius: 1.1rem;
+    width: 50%;
+    background: url('../../assets/images/index-illustration.png') no-repeat center;
+    background-size: contain;
+  }
+
+  #joinBtn {
+    background-color: #FF4D89;
+    border-radius: 1.1rem;
+    padding: .5rem 3rem;
+    box-sizing: border-box;
+    height: auto;
+    border-color: transparent;
+    transition: all .1s ease-in;
+    &:hover {
+      border-color: #B5BEC8;
+      box-shadow: 0 0 1px 1px #B5BEC8;
+      background-color: lighten($color: #FF4D89, $amount: 3)
+    }
+  }
+
+}
