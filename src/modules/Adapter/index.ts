@@ -9,35 +9,39 @@
  * 
  * By Hao Yang on Feb 2019
  */
-/// <reference types="./index" />
 
 import AgoraRTC from 'agora-rtc-sdk';
 
-import { ClientRole, VideoProfiles, Mode, Codec, StreamControlAction } from './constant';
+import { 
+  ClientRole,
+  VideoProfiles,
+  Mode,
+  Codec,
+  StreamControlAction,
+  // MediaDevice,
+  AdapterState
+} from './types';
 import { enhanceClient, enhanceStream } from '../AgoraProxy';
 
 class Adapter {
-  public constructor(config?: AdapterConfig, userInfo?: UserInfo) {
-    this.localConfig = Object.assign({
+  public constructor(state?: AdapterState) {
+    this._state = Object.assign({
       appId: '',
-      channel: 'SampleClass',
+      channel: '',
       shareId: 2,
       mode: Mode.LIVE,
       codec: Codec.VP8,
       videoProfile: VideoProfiles.STANDARD,
-    }, config);
-    this.localUserInfo = Object.assign({
-      role: ClientRole.STUDENT,
-      name: 'Sam',
-      uid: Number(String(new Date().getTime()).slice(7)),
-    }, userInfo);
+      role: ClientRole.AUDIENCE,
+      name: '',
+      uid: -1,
+    }, state);
   }
 
   // ----------------  members ----------------
   // private and public members for class Adapter
 
-  private localUserInfo: UserInfo
-  private localConfig: AdapterConfig
+  private _state: AdapterState
 
   public localClient: any
   public localStream: any
@@ -51,17 +55,15 @@ class Adapter {
     try {
       await Promise.all([this.leaveClass(), this.stopScreenShare()])
     } finally {
-      this.resetStatus();
+      this.resetState();
     }
   }
 
-  private resetStatus() {
-    this.localUserInfo = {
-      role: ClientRole.STUDENT,
+  private resetState() {
+    this._state = {
+      role: ClientRole.AUDIENCE,
       name: '',
-      uid: 0,
-    };
-    this.localConfig = {
+      uid: -1,
       appId: '',
       channel: '',
       shareId: 2,
@@ -71,48 +73,43 @@ class Adapter {
     };
   }
 
-  get config() {
-    return this.localConfig;
+  get state() {
+    return this._state;
   }
 
-  public updateLocalConfig(config: AdapterConfig) {
-    this.localConfig = Object.assign({}, this.localConfig, config);
+  public setState(state: Partial<AdapterState>) {
+    this._state = Object.assign({}, this._state, state);
   }
 
-  get userInfo() {
-    return this.localUserInfo;
-  }
-
-  public updateLocalUserInfo(info: UserInfo) {
-    this.localUserInfo = Object.assign({}, this.localUserInfo, info);
-  }
-
-  public async initClass(appId: string, channel: string, userInfo: UserInfo) {
-    // update localConfig and localUserInfo
-    this.updateLocalConfig({
-      appId, channel
-    });
-    this.updateLocalUserInfo(userInfo)
-
-    // init client
-    const { mode, codec } = this.localConfig;
-    this.localClient = enhanceClient(AgoraRTC.createClient({mode, codec}));
-    await this.localClient.init(this.localConfig.appId);
-
+  public async initClass(channel: string, userInfo: {
+    name: string, role: ClientRole, uid: number
+  }) {
     /** ----------------  tbd ----------------  */
     /** bloc.sink */
   }
 
   public async enterClass(token?: string | null) {
-    // get related config
-    const { channel, cameraId, microphoneId, videoProfile } = this.localConfig;
-    const { uid, role } = this.localUserInfo;
+    // get related state
+    const { 
+      channel, cameraId, microphoneId,
+      videoProfile, mode, codec, appId,
+      uid, role
+    } = this._state;
     const isAudience = role !== ClientRole.AUDIENCE
     const video = isAudience;
     const audio = isAudience;
 
     // initialize
-    const ClientJoinPromise = this.localClient.join(token, channel, uid);
+    const ClientJoinPromise = (async () => {
+      this.localClient = enhanceClient(
+        AgoraRTC.createClient({ mode, codec })
+      );
+      await this.localClient.init(appId);
+      // sub event 
+      // to be done
+      this.localClient.join(token, channel, uid)
+    })();
+
     const StreamInitPromise = (async () => {
       this.localStream = enhanceStream(AgoraRTC.createStream({
         streamID: uid,
@@ -135,7 +132,7 @@ class Adapter {
   }
 
   public async leaveClass() {
-    const isAudience = this.localUserInfo.role === ClientRole.AUDIENCE;
+    const isAudience = this._state.role === ClientRole.AUDIENCE;
     if (!isAudience) {
       await this.localClient.unpublish(this.localStream);
       this.localStream.close();
@@ -147,8 +144,7 @@ class Adapter {
   }
 
   public async startScreenShare(token?: string | null) {
-    const { mode, codec, appId, channel } = this.localConfig;
-    const { uid } = this.localUserInfo;
+    const { mode, codec, appId, channel, uid } = this._state;
 
     const ShareClientInitPromise = (async () => {
       this.shareClient = enhanceClient(AgoraRTC.createClient({
@@ -187,7 +183,7 @@ class Adapter {
     /** bloc.sink */
   }
 
-  private streamControl<T>(action: StreamControlAction, arg: T):void {
+  private _streamControl<T>(action: StreamControlAction, arg: T):void {
     if(arg === undefined) {
       
     }
@@ -206,19 +202,19 @@ class Adapter {
   }
 
   public muteVideo(uid?: number | number[]) {
-    return this.streamControl(StreamControlAction.MUTE_VIDEO, uid)
+    return this._streamControl(StreamControlAction.MUTE_VIDEO, uid)
   }
 
   public muteAudio(uid?: number | number[]) {
-    return this.streamControl(StreamControlAction.MUTE_AUDIO, uid)
+    return this._streamControl(StreamControlAction.MUTE_AUDIO, uid)
   }
 
   public unmuteVideo(uid?: number | number[]) {
-    return this.streamControl(StreamControlAction.UNMUTE_VIDEO, uid)
+    return this._streamControl(StreamControlAction.UNMUTE_VIDEO, uid)
   }
 
   public unmuteAudio(uid?: number | number[]) {
-    return this.streamControl(StreamControlAction.UNMUTE_AUDIO, uid)
+    return this._streamControl(StreamControlAction.UNMUTE_AUDIO, uid)
   }
 
   public broadcastMessage(message: string) {

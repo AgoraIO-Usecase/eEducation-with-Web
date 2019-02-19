@@ -23,17 +23,17 @@ export default function(props: { engine: Adapter }) {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
+
     const [channel, name, role] = [
       channelRef.current.state.value,
       nameRef.current.state.value,
       roleRef.current.state.value,
     ]
-    engine.updateLocalConfig({
-      channel
+    const uid = Number(String(new Date().getTime()).slice(7));
+
+    engine.setState({
+      channel, name, role, uid
     });
-    engine.updateLocalUserInfo({
-      name, role
-    })
   }
   
   return (
@@ -52,21 +52,21 @@ export default function(props: { engine: Adapter }) {
                 <Input
                   ref={channelRef}
                   id="channel"
-                  defaultValue={engine.config.channel}
+                  defaultValue={engine.state.channel}
                 />
               </FormItem>
               <FormItem label="Your Name" colon={false}>
                 <Input
                   ref={nameRef}
                   id="username"
-                  defaultValue={engine.userInfo.name}
+                  defaultValue={engine.state.name}
                 />
               </FormItem>
               <FormItem>
                 <RadioGroup
                   ref={roleRef}
                   id="role"
-                  defaultValue={engine.userInfo.role}
+                  defaultValue={engine.state.role}
                 >
                   <Radio value={2}>Teacher</Radio>
                   <Radio value={1}>Student</Radio>

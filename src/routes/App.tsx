@@ -8,7 +8,9 @@ import DeviceTestPage from './DeviceTest';
 
 
 function App() {
-  const engine = new Adapter();
+  const engine = new Adapter({
+    appId: APP_ID
+  });
 
   return (
     <Router>
