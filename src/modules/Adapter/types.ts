@@ -27,11 +27,6 @@ export enum StreamControlAction {
   UNMUTE_AUDIO = 3
 }
 
-export interface MediaDevice {
-  label: string;
-  deviceId: string;
-}
-
 export interface AdapterState {
   appId: string;
   videoProfile?: VideoProfiles;

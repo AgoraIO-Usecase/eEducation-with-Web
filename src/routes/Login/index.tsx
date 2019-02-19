@@ -13,7 +13,10 @@ const LoadingMask = (
   </div>
 )
 
-export default function(props: { engine: Adapter }) {
+export default function (props: { 
+  engine: Adapter,
+  [propName: string]: any
+}) {
   const engine = props.engine;
 
   // const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +37,8 @@ export default function(props: { engine: Adapter }) {
     engine.setState({
       channel, name, role, uid
     });
+
+    props.history.push('/device_test')
   }
   
   return (

@@ -3,12 +3,19 @@ import { Link } from "react-router-dom";
 import { Form, Select, Button, Progress, Slider } from "antd";
 
 import Adapter from "../../modules/Adapter";
+import { useCamera, useMicrophone } from "../../modules/Hooks";
 import "./index.scss";
 
 const FormItem = Form.Item;
 const Option = Select.Option;
 
-export default function(props: { engine: Adapter }) {
+export default function (props: { 
+  engine: Adapter,
+  [propName: string]: any
+}) {
+  const cameraList = useCamera(props.engine.localClient);
+  const microphoneList = useMicrophone(props.engine.localClient);
+  console.log(cameraList)
   return (
     <div className="wrapper" id="deviceTesting">
       <main className="main">
@@ -25,11 +32,11 @@ export default function(props: { engine: Adapter }) {
               >
                 <Select
                   defaultValue={0}
-                  onChange={val => this.handleVideoDeviceChange(val)}
+                  // onChange={val => this.handleVideoDeviceChange(val)}
                 >
-                  {this.state.videoDevices.map((item, index) => (
-                    <Option key={item.deviceid} value={index}>
-                      {item.devicename}
+                  {cameraList.map((item, index) => (
+                    <Option key={item.deviceId} value={index}>
+                      {item.label}
                     </Option>
                   ))}
                 </Select>
@@ -41,16 +48,16 @@ export default function(props: { engine: Adapter }) {
               >
                 <Select
                   defaultValue={0}
-                  onChange={val => this.handleAudioDeviceChange(val)}
+                  // onChange={val => this.handleAudioDeviceChange(val)}
                 >
-                  {this.state.audioDevices.map((item, index) => (
-                    <Option key={item.deviceid} value={index}>
-                      {item.devicename}
+                  {microphoneList.map((item, index) => (
+                    <Option key={item.deviceId} value={index}>
+                      {item.label}
                     </Option>
                   ))}
                 </Select>
               </FormItem>
-              <FormItem
+              {/* <FormItem
                 style={{ marginBottom: "6px" }}
                 label={
                   <img
@@ -102,7 +109,7 @@ export default function(props: { engine: Adapter }) {
                   defaultValue={this.outputVolume}
                   showInfo={false}
                 />
-              </FormItem>
+              </FormItem> */}
             </Form>
           </main>
         </section>
