@@ -83,4 +83,9 @@
       background-color: lighten($color: #FF4D89, $amount: 3)
     }
   }
+
+  #toggleMusicBtn {
+    cursor: pointer;
+    width: 19px;
+  }
 }

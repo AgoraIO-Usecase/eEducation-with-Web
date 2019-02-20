@@ -1,0 +1,1 @@
+export {isChrome, isFirefox, isSafari, isMobileSize} from './browser';

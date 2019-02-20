@@ -5,10 +5,12 @@ import Adapter from "../modules/Adapter";
 import { APP_ID } from "../agora.config";
 import LoginPage from "./Login";
 import DeviceTestPage from './DeviceTest';
+import { ClientRole } from "../modules/Adapter/types";
 
 function App() {
   const engine = new Adapter({
-    appId: APP_ID
+    appId: APP_ID,
+    role: ClientRole.STUDENT
   });
 
   return (

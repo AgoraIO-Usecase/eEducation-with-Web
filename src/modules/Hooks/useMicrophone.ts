@@ -14,11 +14,13 @@ const useMicrophones = (client: any): MediaDeviceInfo[] => {
     let mounted = true;
 
     const onChange = () => {
-      client.getRecordingDevices((microphones: MediaDeviceInfo[]) => {
-        if(mounted) {
-          setMicrophoneList(microphones)
-        }
-      }, noop);
+      client.getRecordingDevices()
+        .then((microphones: MediaDeviceInfo[]) => {
+          if(mounted) {
+            setMicrophoneList(microphones)
+          }
+        })
+        .catch(noop)
     };
 
     client.on('recordingDeviceChanged', onChange);
