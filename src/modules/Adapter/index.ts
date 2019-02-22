@@ -10,7 +10,7 @@
  * By Hao Yang on Feb 2019
  */
 
-import AgoraRTC from "agora-rtc-sdk";
+import AgoraRTC from 'agora-rtc-sdk';
 
 import {
   ClientRole,
@@ -20,21 +20,21 @@ import {
   StreamControlAction,
   // MediaDevice,
   AdapterState
-} from "./types";
-import { enhanceClient, enhanceStream } from "../AgoraProxy";
+} from './types';
+import { enhanceClient, enhanceStream } from '../AgoraProxy';
 
 class Adapter {
   public constructor(state: AdapterState) {
     this._state = Object.assign(
       {
-        appId: "",
-        channel: "",
+        appId: '',
+        channel: '',
         shareId: 2,
         mode: Mode.LIVE,
         codec: Codec.VP8,
         videoProfile: VideoProfiles.STANDARD,
         role: ClientRole.AUDIENCE,
-        name: "",
+        name: '',
         uid: -1
       },
       state
@@ -47,7 +47,7 @@ class Adapter {
     this.shareClient = this.$createClient({
       mode: this._state.mode,
       codec: this._state.codec
-    })
+    });
   }
 
   // ----------------  members ----------------
@@ -77,9 +77,9 @@ class Adapter {
   private _resetState() {
     this._state = Object.assign(this._state, {
       role: ClientRole.AUDIENCE,
-      name: "",
+      name: '',
       uid: -1,
-      channel: "",
+      channel: ''
     });
   }
 
@@ -88,18 +88,15 @@ class Adapter {
   }
 
   public setState(state: {
-    channel: string,
-    uid: number,
-    name: string,
-    role: ClientRole
+    channel: string;
+    uid: number;
+    name: string;
+    role: ClientRole;
   }) {
     this._state = Object.assign({}, this._state, state);
   }
 
-  public $createClient(config: {
-    mode?: Mode;
-    codec?: Codec;
-  }) {
+  public $createClient(config: { mode?: Mode; codec?: Codec }) {
     const { mode, codec } = config;
     const client = enhanceClient(
       AgoraRTC.createClient({
@@ -111,19 +108,17 @@ class Adapter {
   }
 
   public async $createStream(config: {
-    streamID?: number,
-    video: boolean,
-    audio: boolean,
-    screen?: boolean,
-    cameraId?: string,
-    microphoneId?: string,
-    videoProfile?: string,
-    [propName: string]: any
+    streamID?: number;
+    video: boolean;
+    audio: boolean;
+    screen?: boolean;
+    cameraId?: string;
+    microphoneId?: string;
+    videoProfile?: string;
+    [propName: string]: any;
   }) {
-    const stream = enhanceStream(
-      AgoraRTC.createStream(config)
-    );
-    if(config.videoProfile) {
+    const stream = enhanceStream(AgoraRTC.createStream(config));
+    if (config.videoProfile) {
       stream.setVideoProfile(config.videoProfile);
     }
     await stream.init();
@@ -159,7 +154,7 @@ class Adapter {
 
     // initialize
     const ClientJoinPromise = (async () => {
-      await this.localClient.init(appId)
+      await this.localClient.init(appId);
       // sub event
       // to be done
       await this.localClient.join(token, channel, uid);
@@ -173,7 +168,7 @@ class Adapter {
         cameraId,
         microphoneId,
         videoProfile
-      })
+      });
     })();
 
     await Promise.all([ClientJoinPromise, StreamInitPromise]);
@@ -211,13 +206,13 @@ class Adapter {
         video: false,
         audio: false,
         screen: true,
-        extensionId: "minllpmhdgpndnkomcoccfekfegnlikg",
-        mediaSource: "window"
-      })
+        extensionId: 'minllpmhdgpndnkomcoccfekfegnlikg',
+        mediaSource: 'window'
+      });
     })();
 
     await Promise.all([ShareClientInitPromise, ShareStreamInitPromise]);
-    this.shareStream.on("stopScreenSharing", this.stopScreenShare);
+    this.shareStream.on('stopScreenSharing', this.stopScreenShare);
     await this.shareClient.publish(this.shareStream);
 
     /** ---------------- tbd ----------------  */
@@ -237,7 +232,7 @@ class Adapter {
     if (arg === undefined) {
     }
 
-    if (typeof arg === "number") {
+    if (typeof arg === 'number') {
       /** ---------------- tbd ----------------  */
       /** bloc.sink */
       return;

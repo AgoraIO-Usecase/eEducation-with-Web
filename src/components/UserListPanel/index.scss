@@ -1,0 +1,39 @@
+.user-list-container {
+  background: #fff;
+  padding: 0.3rem;
+
+  .user-list-box {
+    height: calc(100% - 3rem);
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    margin-bottom: 1rem;
+  }
+
+  .user-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    .user-info {
+      flex: 1 1 auto;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .user-control {
+      flex: 0 0 6.5rem;
+      display: flex;
+      justify-content: space-around;
+      align-content: center;
+    }
+  }
+
+  .user-list-button-group {
+    height: 2rem;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.25rem;
+    button {
+      width: 5rem;
+    }
+  }
+}

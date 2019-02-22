@@ -1,11 +1,11 @@
-import React from "react";
-import { HashRouter as Router, Route } from "react-router-dom";
+import React from 'react';
+import { HashRouter as Router, Route } from 'react-router-dom';
 
-import Adapter from "../modules/Adapter";
-import { APP_ID } from "../agora.config";
-import LoginPage from "./Login";
+import Adapter from '../modules/Adapter';
+import { APP_ID } from '../agora.config';
+import LoginPage from './Login';
 import DeviceTestPage from './DeviceTest';
-import { ClientRole } from "../modules/Adapter/types";
+import { ClientRole } from '../modules/Adapter/types';
 
 function App() {
   const engine = new Adapter({

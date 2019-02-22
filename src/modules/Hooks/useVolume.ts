@@ -8,7 +8,7 @@ const useVolume = (stream: any, interval = 50): number => {
 
     const timer = setInterval(() => {
       if (mounted) {
-        if(stream && stream.getAudioLevel) {
+        if (stream && stream.getAudioLevel) {
           setVolume(stream.getAudioLevel());
         } else {
           setVolume(0);
@@ -23,6 +23,6 @@ const useVolume = (stream: any, interval = 50): number => {
   }, [stream]);
 
   return volume;
-}
+};
 
 export default useVolume;

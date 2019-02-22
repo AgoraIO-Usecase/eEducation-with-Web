@@ -1,7 +1,7 @@
 /**
- * Proxy for Agora Web SDK 2.5.0 which provide an enhanced 
+ * Proxy for Agora Web SDK 2.5.0 which provide an enhanced
  * event emitter and tranfer methods with callback to promise
- * 
+ *
  * By Hao Yang on Feb 2019
  */
 
@@ -11,25 +11,31 @@ const enhanceClient = function(client: any) {
     get: function(target: any, prop: string, receiver: any) {
       const origin = Reflect.get(target, prop, receiver);
       if (origin instanceof Function) {
-        return new Proxy(origin, methodsProxyHandler(prop))
-      } 
-      return origin
+        return new Proxy(origin, methodsProxyHandler(prop));
+      }
+      return origin;
     }
   };
 
   const methodsProxyHandler = function(prop: string) {
     return {
       apply: function(target: any, thisArg: any, argumentList: Array<any>) {
-        switch(prop) {
+        switch (prop) {
           default:
             return target(...argumentList);
           case 'init':
             return new Promise(function(resolve, reject) {
-              target(argumentList[0], resolve, reject)
+              target(argumentList[0], resolve, reject);
             });
           case 'join':
             return new Promise(function(resolve, reject) {
-              target(argumentList[0], argumentList[1], argumentList[2], resolve, reject)
+              target(
+                argumentList[0],
+                argumentList[1],
+                argumentList[2],
+                resolve,
+                reject
+              );
             });
           case 'leave':
             return new Promise(function(resolve, reject) {
@@ -37,22 +43,22 @@ const enhanceClient = function(client: any) {
             });
           case 'publish':
             return new Promise(function(resolve, reject) {
-              setTimeout(resolve)
+              setTimeout(resolve);
               target(argumentList[0], reject);
             });
           case 'subscribe':
             return new Promise(function(resolve, reject) {
-              setTimeout(resolve)
+              setTimeout(resolve);
               target(argumentList[0], reject);
-            });          
+            });
           case 'unpublish':
             return new Promise(function(resolve, reject) {
-              setTimeout(resolve)
+              setTimeout(resolve);
               target(argumentList[0], reject);
             });
           case 'unsubscribe':
             return new Promise(function(resolve, reject) {
-              setTimeout(resolve)
+              setTimeout(resolve);
               target(argumentList[0], reject);
             });
           case 'enableDualStream':
@@ -101,8 +107,8 @@ const enhanceClient = function(client: any) {
             });
         }
       }
-    }
-  }
+    };
+  };
 
   // do proxy
   return new Proxy(client, handler);
@@ -114,16 +120,16 @@ const enhanceStream = function(stream: any) {
     get: function(target: any, prop: string, receiver: any) {
       const origin = Reflect.get(target, prop, receiver);
       if (origin instanceof Function) {
-        return new Proxy(origin, methodsProxyHandler(prop))
-      } 
-      return origin
+        return new Proxy(origin, methodsProxyHandler(prop));
+      }
+      return origin;
     }
-  }
+  };
 
   const methodsProxyHandler = function(prop: string) {
     return {
       apply: function(target: any, thisArg: any, argumentList: Array<any>) {
-        switch(prop) {
+        switch (prop) {
           default:
             return target(...argumentList);
           case 'init':
@@ -136,8 +142,8 @@ const enhanceStream = function(stream: any) {
             });
         }
       }
-    }
-  }
+    };
+  };
 
   // do proxy
   return new Proxy(stream, handler);

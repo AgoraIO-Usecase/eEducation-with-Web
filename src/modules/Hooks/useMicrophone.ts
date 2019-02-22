@@ -14,13 +14,14 @@ const useMicrophones = (client: any): MediaDeviceInfo[] => {
     let mounted = true;
 
     const onChange = () => {
-      client.getRecordingDevices()
+      client
+        .getRecordingDevices()
         .then((microphones: MediaDeviceInfo[]) => {
-          if(mounted) {
-            setMicrophoneList(microphones)
+          if (mounted) {
+            setMicrophoneList(microphones);
           }
         })
-        .catch(noop)
+        .catch(noop);
     };
 
     client.on('recordingDeviceChanged', onChange);
@@ -28,11 +29,14 @@ const useMicrophones = (client: any): MediaDeviceInfo[] => {
 
     return () => {
       mounted = false;
-      client.gatewayClient.removeEventListener('recordingDeviceChanged', onChange);
+      client.gatewayClient.removeEventListener(
+        'recordingDeviceChanged',
+        onChange
+      );
     };
   }, []);
 
   return microphoneList;
-}
+};
 
 export default useMicrophones;

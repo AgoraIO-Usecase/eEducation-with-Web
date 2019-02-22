@@ -14,13 +14,14 @@ const useCameras = (client: any): MediaDeviceInfo[] => {
     let mounted = true;
 
     const onChange = () => {
-      client.getCameras()
+      client
+        .getCameras()
         .then((cameras: MediaDeviceInfo[]) => {
-          if(mounted) {
-            setCameraList(cameras)
+          if (mounted) {
+            setCameraList(cameras);
           }
         })
-        .catch(noop)
+        .catch(noop);
     };
 
     client.on('cameraChanged', onChange);
@@ -33,6 +34,6 @@ const useCameras = (client: any): MediaDeviceInfo[] => {
   }, []);
 
   return cameraList;
-}
+};
 
 export default useCameras;
