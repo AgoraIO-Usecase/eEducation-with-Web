@@ -1,17 +1,17 @@
 export enum VideoProfiles {
-  LOW = "120p",
-  STANDARD = "480p_2",
-  HIGH = "720p_3"
+  LOW = '120p',
+  STANDARD = '480p_2',
+  HIGH = '720p_3'
 }
 
 export enum Mode {
-  LIVE = "live",
-  RTC = "rtc"
+  LIVE = 'live',
+  RTC = 'rtc'
 }
 
 export enum Codec {
-  VP8 = "vp8",
-  H264 = "h264"
+  VP8 = 'vp8',
+  H264 = 'h264'
 }
 
 export enum ClientRole {
@@ -32,13 +32,13 @@ export interface AdapterState {
   videoProfile?: VideoProfiles;
   mode?: Mode;
   codec?: Codec;
-  channel?: string;
+  channel: string;
   shareId?: number;
   cameraId?: string;
   microphoneId?: string;
-  uid?: number;
-  name?: string;
-  role?: ClientRole;
+  uid: number;
+  name: string;
+  role: ClientRole;
   [propName: string]: any;
   // tbc
 }

@@ -14,19 +14,22 @@ import axios from 'axios';
  */
 const RECORDING_SERVICE = 'http://123.155.153.85:3233';
 
-const RECORDING = Symbol('recording'); // doing recording
-const PENDING = Symbol('pending'); // posting request for start/stop
-const IDLE = Symbol('idle'); // recording service is in idle
+export const STATUS_RECORDING = Symbol('recording'); // doing recording
+export const STATUS_PENDING = Symbol('pending'); // posting request for start/stop
+export const STATUS_IDLE = Symbol('idle'); // recording service is in idle
 
 class RecordingAPIClass {
   constructor() {
-    this.status = IDLE;
+    this.status = STATUS_IDLE;
   }
 
-  public status: typeof RECORDING | typeof PENDING | typeof IDLE;
+  public status:
+    | typeof STATUS_RECORDING
+    | typeof STATUS_PENDING
+    | typeof STATUS_IDLE;
 
   public start(appId: string, channel: string, token?: string): Promise<any> {
-    this.status = PENDING;
+    this.status = STATUS_PENDING;
     return axios
       .post(`${RECORDING_SERVICE}/v1/recording/start`, {
         appid: appId,
@@ -34,10 +37,10 @@ class RecordingAPIClass {
         key: token
       })
       .then(() => {
-        this.status = RECORDING;
+        this.status = STATUS_RECORDING;
       })
       .catch(() => {
-        this.status = IDLE;
+        this.status = STATUS_IDLE;
       });
   }
 
@@ -49,10 +52,10 @@ class RecordingAPIClass {
         key: token
       })
       .then(() => {
-        this.status = IDLE;
+        this.status = STATUS_IDLE;
       })
       .catch(() => {
-        this.status = IDLE;
+        this.status = STATUS_IDLE;
       });
   }
 }

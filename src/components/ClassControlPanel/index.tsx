@@ -11,15 +11,14 @@ import './index.sass';
 
 const TabPane = Tabs.TabPane;
 
-interface ClassControlPanelProps {
+export type ClassControlPanelProps = {
   onSendMessage?: (message: string) => void;
   onAction?: (actionType: ActionType, action: Action, uid?: number) => any;
   className?: string;
-}
+} & ChatPanelProps &
+  UserListPanelProps;
 
-const ClassControlPanel: FunctionComponent<
-  ClassControlPanelProps & ChatPanelProps & UserListPanelProps
-> = props => {
+const ClassControlPanel: FunctionComponent<ClassControlPanelProps> = props => {
   const [currentTabIndex, setCurrentTabIndex] = useState('1');
 
   const handleMessage = (msg: string) => {

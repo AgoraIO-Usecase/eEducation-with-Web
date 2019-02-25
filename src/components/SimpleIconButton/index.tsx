@@ -3,8 +3,8 @@ import React, { FunctionComponent, CSSProperties } from 'react';
 import './index.sass';
 
 interface SimpleIconButtonProps {
-  active: boolean;
-  disabled: boolean;
+  active?: boolean;
+  disabled?: boolean;
   type: string;
   className?: string;
   style?: CSSProperties;

@@ -63,17 +63,6 @@ class Adapter {
 
   // ----------------  methods ----------------
   // implement methods for class Adapter
-
-  private async _resetClient() {
-    try {
-      await Promise.all([this.leaveClass(), this.stopScreenShare()]);
-    } catch (err) {
-      console.warn(err);
-    } finally {
-      this._resetState();
-    }
-  }
-
   private _resetState() {
     this._state = Object.assign(this._state, {
       role: ClientRole.AUDIENCE,
@@ -181,12 +170,15 @@ class Adapter {
   }
 
   public async leaveClass() {
-    const isAudience = this._state.role === ClientRole.AUDIENCE;
-    if (!isAudience) {
-      await this.localClient.unpublish(this.localStream);
-      this.localStream.close();
-    }
-    await this.localClient.leave();
+    const _leaveClass = async () => {
+      const isAudience = this._state.role === ClientRole.AUDIENCE;
+      if (!isAudience) {
+        await this.localClient.unpublish(this.localStream);
+        this.localStream.close();
+      }
+      await this.localClient.leave();
+    };
+    return Promise.all([_leaveClass, this.stopScreenShare]);
 
     /** ---------------- tbd ----------------  */
     /** bloc.sink */

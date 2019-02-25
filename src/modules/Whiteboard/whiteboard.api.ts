@@ -1,6 +1,6 @@
 import { WhiteWebSdk, Room } from 'white-web-sdk';
 import axios from 'axios';
-import { EventEmitter } from 'events';
+import EventEmitter from 'wolfy87-eventemitter';
 
 const WHITEBOARD_URL = 'http://123.155.153.85:3785';
 const Ajax = axios.create({
