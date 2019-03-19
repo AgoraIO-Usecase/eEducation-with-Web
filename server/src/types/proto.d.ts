@@ -1,4 +1,4 @@
-declare namespace RoomControlProto {
+declare namespace RoomControlRequest {
   // Request
   export interface Request {
     name: string;
@@ -11,12 +11,14 @@ declare namespace RoomControlProto {
     name: "Join";
     args: {
       channel: string;
+      userAttr: RoomControl.UserAttr;
+      channelAttr?: RoomControl.ChannelAttr;
     };
   }
 
-  export interface Leave extends Request {
-    name: "Leave";
-  }
+  // export interface Leave extends Request {
+  //   name: "Leave";
+  // }
 
   export interface StartShare extends Request {
     name: "StartShare";
@@ -47,8 +49,8 @@ declare namespace RoomControlProto {
     };
   }
 
-  export interface UnMute extends Request {
-    name: "UnMute";
+  export interface Unmute extends Request {
+    name: "Unmute";
     args: {
       type: "video" | "audio" | "chat";
       target: string | string[];
@@ -59,27 +61,31 @@ declare namespace RoomControlProto {
     name: "Ring";
   }
 
-  export interface Promote extends Request {
-    name: "Promote";
+  export interface CustomRequest extends Request {
+    name: 'CustomRequest',
     args: {
+      type: string;
       uid: string;
-    };
+    }
   }
 
-  export interface Demote extends Request {
-    name: "Demote";
+  export interface UpdateUserAttr extends Request {
+    name: "UpdateUserAttr";
     args: {
-      uid: string;
+      userAttr: Partial<RoomControl.UserAttr>;
+      uid: string
     };
   }
 
-  export interface ChangeRole extends Request {
-    name: "Request";
+  export interface UpdateChannelAttr extends Request {
+    name: "UpdateChannelAttr";
     args: {
-      type: "promote" | "demote";
+      channelAttr: Partial<RoomControl.ChannelAttr>;
     };
   }
+}
 
+declare namespace RoomControlResponse {
   // Result
   export interface Response {
     name: string;
@@ -95,6 +101,93 @@ declare namespace RoomControlProto {
     };
   }
 
+  export interface JoinSucess extends Response {
+    name: "JoinSucess";
+    args: {
+      channelAttr: RoomControl.ChannelAttr;
+      members: Array<RoomControl.UserAttr & { uid: string }>;
+    };
+  }
+
+  export interface JoinFailure extends Response {
+    name: "JoinFailure";
+    args: {
+      info: string;
+    };
+  }
+
+  export interface MemberLeft extends Response {
+    name: "MemberLeft";
+    args: {
+      uid: string;
+    };
+  }
+
+  export interface MemberJoined extends Response {
+    name: "MemberJoined";
+    args: {
+      uid: string;
+    } & RoomControl.UserAttr;
+  }
+
+  export interface ChannelMessage extends Response {
+    name: "ChannelMessage";
+    args: {
+      uid: string;
+      message: string;
+    };
+  }
+
+  export interface Muted extends Response {
+    name: "Muted";
+    args: {
+      type: "video" | "audio" | "chat";
+      uid: string;
+    };
+  }
+
+  export interface Unmuted extends Response {
+    name: "Unmuted";
+    args: {
+      type: "video" | "audio" | "chat";
+      uid: string;
+    };
+  }
+
+  export interface Ringing extends Response {
+    name: "Ringing";
+    args: {
+      uid: string;
+    };
+  }
+
+  export interface CustomRequest extends Response {
+    name: 'CustomRequest',
+    args: {
+      type: string;
+      uid: string;
+    }
+  }
+
+  export interface UserAttrUpdated extends Response {
+    name: "UserAttrUpdated";
+    args: {
+      userAttr: Partial<RoomControl.UserAttr>;
+      target: string;
+      uid: string
+    };
+  }
+
+  export interface ChannelAttrUpdated extends Response {
+    name: "ChannelAttrUpdated";
+    args: {
+      channelAttr: Partial<RoomControl.ChannelAttr>;
+      uid: string;
+    };
+  }
+}
+
+declare namespace RoomControl {
   // Others
   export enum Role {
     Audience = 0,
@@ -106,8 +199,7 @@ declare namespace RoomControlProto {
     role: Role;
     name: string;
     streamId: number;
-    channel: string;
-    [props: string]: string|number;
+    [props: string]: string | number;
   }
 
   export interface ChannelAttr {
@@ -116,5 +208,6 @@ declare namespace RoomControlProto {
     shareId: number;
     whiteboardId: string;
     teacherId: string;
+    [props: string]: string | number;
   }
 }

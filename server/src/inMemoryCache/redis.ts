@@ -1,12 +1,14 @@
 import redis from 'redis'
 import { promisifyAll } from 'bluebird';
 
-interface RedisAsyncClient extends redis.RedisClient {
+export interface RedisAsyncClient extends redis.RedisClient {
   [props: string]: any
-}
+};
 
 const redisAsync = promisifyAll(redis);
 
-const client = redisAsync.createClient() as RedisAsyncClient;
+const createclient = (options?: redis.ClientOpts): RedisAsyncClient => {
+  return redisAsync.createClient(options)
+};
 
-export default client;
+export default createclient;
