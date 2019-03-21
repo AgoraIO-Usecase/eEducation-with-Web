@@ -1,4 +1,4 @@
-import createRedisClient, {RedisAsyncClient} from "./redis";
+import createRedisClient, { RedisAsyncClient } from "./redis";
 
 const hashUser = (uid: string) => {
   return `u-${uid}`;
@@ -13,15 +13,13 @@ const hashChannelMembers = (channel: string) => {
 };
 
 export default class ChannelCache {
-  private redisClient: RedisAsyncClient
+  private redisClient: RedisAsyncClient;
   private channelsHash: string;
   // private usersHash: string;
   // private gcInterval: number;
   // private cleanupSchedule?: NodeJS.Timeout;
-  constructor(namespace: string) {
-    this.redisClient = createRedisClient({
-      prefix: namespace
-    })
+  constructor() {
+    this.redisClient = createRedisClient();
     this.channelsHash = `channels`;
     // this.usersHash = `${this.namespace}-users`;
     // this.gcInterval = gcInterval;
@@ -57,13 +55,13 @@ export default class ChannelCache {
   //   this.cleanupSchedule = setInterval(async () => {
   //     const now = new Date().getTime();
   //     const channels: string[] = await this.redisClient.smembersAsync(this.channelsHash);
-  //     for (const channel of channels) { 
+  //     for (const channel of channels) {
   //       const getLtnPromise = this.getChannelAttr(channel, ['lastmodified']);
   //       const getMembersPromise = this.getChannelMembers(channel);
   //       Promise.all([getLtnPromise, getMembersPromise])
   //         .then(([ltn, members]) => {
   //           if ((now - ltn > 1.5*this.gcInterval) && members.length) {
-            
+
   //           }
   //         })
   //     }
@@ -73,43 +71,39 @@ export default class ChannelCache {
   // ---------------- User Attr Operation ----------------
 
   getUserAttr = async (uid: string, keys: string[]) => {
-    this.flushUser(uid);
-    return await this.redisClient.hmgetAsync(hashUser(uid), keys);
+    return await this.redisClient.hmgetAsync(hashUser(uid), ...keys);
   };
 
   getAllUserAttr = async (uid: string) => {
-    this.flushUser(uid);
     return await this.redisClient.hgetallAsync(hashUser(uid));
   };
 
-  setUserAttr = async (
-    uid: string,
-    kvs: Partial<RoomControl.UserAttr>
-  ) => {
-    this.flushUser(uid);
+  setUserAttr = async (uid: string, kvs: Partial<RoomControl.UserAttr>) => {
     return await this.redisClient.hmsetAsync(hashUser(uid), kvs);
   };
 
   clearUserAttr = async (uid: string) => {
-    this.flushUser(uid);
-    return await this.redisClient.hdelAsync(hashUser(uid));
+    return await this.redisClient.delAsync(hashUser(uid));
   };
 
-  private flushUser = (uid: string) => {
-    this.setUserAttr(uid, {
-      lastmodified: new Date().getTime()
-    });
-  };
+  // private flushUser = (uid: string) => {
+  //   this.setUserAttr(uid, {
+  //     lastmodified: new Date().getTime()
+  //   });
+  // };
 
   // ---------------- Channel Attr Operation ----------------
 
-  getChannelAttr = async (channel: string, keys: string[]): Promise<RoomControl.ChannelAttr> => {
-    this.flushChannel(channel);
-    return await this.redisClient.hmgetAsync(hashChannel(channel), keys);
+  getChannelAttr = async (
+    channel: string,
+    keys: string[]
+  ): Promise<RoomControl.ChannelAttr> => {
+    return await this.redisClient.hmgetAsync(hashChannel(channel), ...keys);
   };
 
-  getAllChannelAttr = async (channel: string): Promise<RoomControl.ChannelAttr> => {
-    this.flushChannel(channel);
+  getAllChannelAttr = async (
+    channel: string
+  ): Promise<RoomControl.ChannelAttr> => {
     return await this.redisClient.hgetallAsync(hashChannel(channel));
   };
 
@@ -117,48 +111,43 @@ export default class ChannelCache {
     channel: string,
     kvs: Partial<RoomControl.ChannelAttr>
   ) => {
-    this.flushChannel(channel);
     return await this.redisClient.hmsetAsync(hashChannel(channel), kvs);
   };
 
   clearChannelAttr = async (channel: string) => {
-    this.flushChannel(channel);
-    await this.redisClient.hdelAsync(hashChannel(channel));
-    await this.redisClient.hdelAsync(hashChannelMembers(channel));
+    await this.redisClient.delAsync(hashChannel(channel));
+    await this.redisClient.delAsync(hashChannelMembers(channel));
   };
 
   addChannelMember = async (channel: string, uid: string | string[]) => {
-    this.flushChannel(channel);
-    if (uid instanceof Array) {
-      const uids = uid.map(item => hashUser(item));
-      return await this.redisClient.sadd(
+    if (Array.isArray(uid)) {
+      return await this.redisClient.saddAsync(
         hashChannelMembers(channel),
-        uids
+        ...uid
       );
     } else {
       return await this.redisClient.saddAsync(
         hashChannelMembers(channel),
-        hashUser(uid)
+        uid
       );
     }
+
   };
 
   getChannelMembers = async (channel: string): Promise<string[]> => {
-    this.flushChannel(channel);
-    return await this.redisClient.smembersAsync(channel);
-  }
+    return await this.redisClient.smembersAsync(hashChannelMembers(channel));
+  };
 
   removeChannelMember = async (channel: string, uid: string) => {
-    this.flushChannel(channel);
     return await this.redisClient.sremAsync(
       hashChannelMembers(channel),
-      hashUser(uid)
+      uid
     );
   };
 
-  private flushChannel = (channel: string) => {
-    this.setChannelAttr(channel, {
-      lastmodified: new Date().getTime()
-    });
-  };
-};
+  // private flushChannel = (channel: string) => {
+  //   this.setChannelAttr(channel, {
+  //     lastmodified: new Date().getTime()
+  //   });
+  // };
+}

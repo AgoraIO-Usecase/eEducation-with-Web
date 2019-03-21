@@ -7,8 +7,11 @@ export interface RedisAsyncClient extends redis.RedisClient {
 
 const redisAsync = promisifyAll(redis);
 
-const createclient = (options?: redis.ClientOpts): RedisAsyncClient => {
-  return redisAsync.createClient(options)
+const createclient = (): RedisAsyncClient => {
+  return redisAsync.createClient({
+    prefix: process.env.AGORA_APPID,
+    url: process.env.REDIS_URL
+  })
 };
 
 export default createclient;
