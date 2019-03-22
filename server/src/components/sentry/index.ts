@@ -1,33 +1,36 @@
-/// <reference path="./types/proto.d.ts" />
+/// <reference path="../../proto/proto.d.ts" />
 
 import AgoraRtmSDK, { AgoraRtmChannel } from "agora-node-rtm";
-import ChannelCache from "./inMemoryCache";
+import inMemoryCache from "./inMemoryCache";
+import { sentry as log } from "../../lib/logger";
 
 class Sentry {
   public uid: string;
+  public online: boolean;
   private appId: string;
   private rtmController: AgoraRtmSDK;
   private channelList: Map<string, AgoraRtmChannel>;
-  public channelCacheClient: ChannelCache;
+  public cache: inMemoryCache;
   constructor(appId: string, uid = "agora-sentry") {
     this.uid = uid;
     this.appId = appId;
     this.channelList = new Map();
     this.rtmController = new AgoraRtmSDK();
-    this.channelCacheClient = new ChannelCache();
+    this.cache = new inMemoryCache();
+    this.online = false;
   }
 
   public async init() {
     await this.login();
-    const channelsInMemory = await this.channelCacheClient.getChannels();
+    // Recover registry for channel in memory cache
+    const channelsInMemory = await this.cache.getChannels();
     for (const channel of channelsInMemory) {
-      const channelAttr = await this.channelCacheClient.getAllChannelAttr(
-        channel
-      );
+      const channelAttr = await this.cache.getAllChannelAttr(channel);
       try {
+        log.info(`Recovering registry for channel ${channel}`);
         await this.registerChannel(channel, channelAttr);
       } catch (err) {
-        console.log("Failed to register channel:", channel);
+        log.error(`Failed to Recover registry for channel ${channel}`);
       }
     }
   }
@@ -36,15 +39,19 @@ class Sentry {
   private login = async () => {
     // subscribe session events
     this.rtmController.on("Logout", () => {
-      console.log("Sentry offline");
+      log.error("Sentry offline");
+      this.online = false;
     });
     this.rtmController.on("MessageReceivedFromPeer", (peerId, message) => {
-      console.log("->>> incoming message ->>>");
-      console.log(peerId, message);
+      log.info("->>> incoming message ->>>");
+      log.info(peerId, message);
+      // handle command message
       this.onMessage(peerId, message);
     });
+
     // do login
     await this.rtmController.login(this.appId, this.uid);
+    this.online = true;
   };
 
   /** Sentry will join and listen to target channel */
@@ -52,44 +59,50 @@ class Sentry {
     return new Promise(async (resolve, reject) => {
       const channelInstance = this.rtmController.createChannel(channel);
       // subscribe channel events
-      channelInstance.on("LeaveChannel", (ecode: string) => {
-        console.log(ecode);
+      channelInstance.on("LeaveChannel", (ecode: number) => {
+        if (ecode) {
+          log.error("Left channel unexpectedly", ecode);
+        }
       });
       channelInstance.on("GetMembers", async (members: [], ecode: number) => {
         if (ecode) {
-          reject(ecode)
+          reject(ecode);
         }
-        console.log("Members in channel:", channel, members);
+        log.info("Members in channel", channel, members);
         if (members.length <= 1) {
           await this.unregisterChannel(channel);
         } else {
-          await this.channelCacheClient.addChannelMember(channel, members);
+          await this.cache.addChannelMember(channel, members);
         }
-        resolve(channelInstance)
+        resolve(channelInstance);
       });
       channelInstance.on(
         "MemberJoined",
         async (peerId: string, channel: string) => {
-          await this.channelCacheClient.addChannelMember(channel, peerId);
+          await this.cache.addChannelMember(channel, peerId);
+          log.info(`Member ${peerId} joined channel ${channel}`);
         }
       );
       channelInstance.on(
         "MemberLeft",
         async (peerId: string, channel: string) => {
-          console.log("User", peerId, "left channel", channel);
+          log.info(`Member ${peerId} left channel ${channel}`);
           try {
-            await this.channelCacheClient.removeChannelMember(channel, peerId);
-            await this.channelCacheClient.clearUserAttr(peerId);
+            await this.cache.removeChannelMember(channel, peerId);
+            await this.cache.clearUserAttr(peerId);
           } catch (err) {
-            console.log("Failed to clear user", peerId, "in channel", channel);
-            console.log(err);
+            log.warn(
+              "Failed to clear user attribute for user",
+              peerId,
+              "in channel",
+              channel,
+              err
+            );
           }
-  
           // check if we should unregister this channel
-          const members = await this.channelCacheClient.getChannelMembers(
-            channel
-          );
-          if (members.length === 0) {
+          const members = await this.cache.getChannelMembers(channel);
+          if (members.length <= 1) {
+            log.info("No members left, try to unregister channel");
             await this.unregisterChannel(channel);
           } else {
             for (const member of members) {
@@ -104,15 +117,17 @@ class Sentry {
           }
         }
       );
+
+      // do join and fetch members
       try {
-        console.log('Sentry try to join channel', channel);
+        log.info(`Entering channel ${channel}`);
         await channelInstance.join();
         channelInstance.getMembers();
       } catch (err) {
-        console.log('Sentry joinned channel', channel);
-        reject(err)
+        log.info(`Failed to enter channel ${channel}`);
+        reject(err);
       }
-    })
+    });
   };
 
   /** Sentry register Channel in ChannelList */
@@ -120,27 +135,33 @@ class Sentry {
     channelName: string,
     channelAttr?: RoomControl.ChannelAttr
   ) {
-    console.log("try to register channel", channelName);
+    log.info("Registering channel", channelName);
     const channelController = await this.join(channelName);
     if (channelAttr) {
-      await this.channelCacheClient.setChannelAttr(channelName, channelAttr);
+      await this.cache.setChannelAttr(channelName, channelAttr);
     }
     this.channelList.set(channelName, channelController);
-    await this.channelCacheClient.addChannel(channelName);
+    await this.cache.addChannel(channelName);
+    log.info(`Register channel ${channelName} successfully`);
   }
 
   private async unregisterChannel(channelName: string) {
+    log.info("Unregistering channel", channelName);
     const channelController = this.channelList.get(channelName);
     if (channelController) {
       channelController.leave();
       this.channelList.delete(channelName);
     }
     try {
-      await this.channelCacheClient.clearChannelAttr(channelName);
-      await this.channelCacheClient.removeChannel(channelName);
+      await this.cache.clearChannelAttr(channelName);
+      await this.cache.removeChannel(channelName);
+      log.info(`Unregister channel ${channelName} and clear related attr`);
     } catch (err) {
-      console.log("Failed to clear channel", channelName);
-      console.log(err);
+      log.warn(
+        "Failed to clear channel attribute for channel",
+        channelName,
+        err
+      );
     }
   }
 
@@ -149,6 +170,7 @@ class Sentry {
 
   /** Sentry send response to client by AgoraRTM p2p message */
   private sendMessage(peerId: string, message: string) {
+    log.info(`Sending message to ${peerId}`, message);
     this.rtmController.sendMessageToPeer(peerId, message);
   }
 
@@ -202,8 +224,8 @@ class Sentry {
 
   private async handleJoin(fromId: string, request: RoomControlRequest.Join) {
     const { channel, userAttr, channelAttr } = request.args;
-    console.log("->>> incoming join command ->>>");
-    console.log(channel, userAttr, channelAttr);
+    log.info("->>> incoming join command ->>>");
+    log.info(channel, userAttr, channelAttr);
     // if channel not exsits, create it
     if (!this.channelList.has(channel)) {
       try {
@@ -219,8 +241,9 @@ class Sentry {
         return;
       }
     }
-    console.log('channel', channel ,'already register');
-    const members = await this.channelCacheClient.getChannelMembers(channel);
+
+    log.info("channel", channel, "already registered");
+    const members = await this.cache.getChannelMembers(channel);
     if (!members.includes(fromId)) {
       const response: RoomControlResponse.JoinFailure = {
         name: "JoinFailure",
@@ -230,17 +253,16 @@ class Sentry {
       };
       this.sendMessage(fromId, JSON.stringify(response));
     } else {
-      await this.channelCacheClient.setUserAttr(fromId, {
+      await this.cache.setUserAttr(fromId, {
         ...userAttr,
         channel: channel
       });
       if (channelAttr) {
-        await this.channelCacheClient.setChannelAttr(fromId, channelAttr);
+        await this.cache.setChannelAttr(channel, channelAttr);
       }
-
       let users = [];
       for (const member of members) {
-        const attribute = await this.channelCacheClient.getAllUserAttr(member);
+        const attribute = await this.cache.getAllUserAttr(member);
         users.push({ ...attribute, uid: member });
         if (member !== fromId) {
           const response: RoomControlResponse.MemberJoined = {
@@ -254,9 +276,7 @@ class Sentry {
         }
       }
 
-      const channelStatus = await this.channelCacheClient.getAllChannelAttr(
-        channel
-      );
+      const channelStatus = await this.cache.getAllChannelAttr(channel);
 
       const response: RoomControlResponse.JoinSucess = {
         name: "JoinSucess",
@@ -271,14 +291,13 @@ class Sentry {
   }
 
   private async handleChat(fromId: string, request: RoomControlRequest.Chat) {
-    const {message} = request.args
-    const [channel] = await this.channelCacheClient.getUserAttr(fromId, [
-      "channel"
-    ]);
-    console.log("->>> incoming chat command ->>>");
-    console.log(channel, fromId, message);
+    const { message } = request.args;
+    const [channel] = await this.cache.getUserAttr(fromId, ["channel"]);
 
-    const members = await this.channelCacheClient.getChannelMembers(channel);
+    log.info("->>> incoming chat command ->>>");
+    log.info(channel, fromId, message);
+
+    const members = await this.cache.getChannelMembers(channel);
     const response: RoomControlResponse.ChannelMessage = {
       name: "ChannelMessage",
       args: {
@@ -293,13 +312,12 @@ class Sentry {
 
   private async handleMute(fromId: string, request: RoomControlRequest.Mute) {
     const { type, target } = request.args;
-    const [channel] = await this.channelCacheClient.getUserAttr(fromId, [
-      "channel"
-    ]);
-    console.log("->>> incoming mute command ->>>");
-    console.log(channel, fromId, type, target);
+    const [channel] = await this.cache.getUserAttr(fromId, ["channel"]);
 
-    const members = await this.channelCacheClient.getChannelMembers(channel);
+    log.info("->>> incoming mute command ->>>");
+    log.info(channel, fromId, type, target);
+
+    const members = await this.cache.getChannelMembers(channel);
     const response: RoomControlResponse.Muted = {
       name: "Muted",
       args: {
@@ -325,13 +343,12 @@ class Sentry {
     request: RoomControlRequest.Unmute
   ) {
     const { type, target } = request.args;
-    const [channel] = await this.channelCacheClient.getUserAttr(fromId, [
-      "channel"
-    ]);
-    console.log("->>> incoming unmute command ->>>");
-    console.log(channel, fromId, type, target);
+    const [channel] = await this.cache.getUserAttr(fromId, ["channel"]);
 
-    const members = await this.channelCacheClient.getChannelMembers(channel);
+    log.info("->>> incoming unmute command ->>>");
+    log.info(channel, fromId, type, target);
+
+    const members = await this.cache.getChannelMembers(channel);
     const response: RoomControlResponse.Unmuted = {
       name: "Unmuted",
       args: {
@@ -353,13 +370,12 @@ class Sentry {
   }
 
   private async handleRing(fromId: string, request: RoomControlRequest.Ring) {
-    const [channel] = await this.channelCacheClient.getUserAttr(fromId, [
-      "channel"
-    ]);
-    console.log("->>> incoming ring command ->>>");
-    console.log(channel, fromId);
+    const [channel] = await this.cache.getUserAttr(fromId, ["channel"]);
 
-    const members = await this.channelCacheClient.getChannelMembers(channel);
+    log.info("->>> incoming ring command ->>>");
+    log.info(channel, fromId);
+
+    const members = await this.cache.getChannelMembers(channel);
     const response: RoomControlResponse.Ringing = {
       name: "Ringing",
       args: {
@@ -376,13 +392,12 @@ class Sentry {
     request: RoomControlRequest.CustomRequest
   ) {
     const { type, uid } = request.args;
-    const [channel] = await this.channelCacheClient.getUserAttr(fromId, [
-      "channel"
-    ]);
-    console.log("->>> incoming customrequest command ->>>");
-    console.log(channel, fromId, type, uid);
+    const [channel] = await this.cache.getUserAttr(fromId, ["channel"]);
 
-    const members = await this.channelCacheClient.getChannelMembers(channel);
+    log.info("->>> incoming customrequest command ->>>");
+    log.info(channel, fromId, type, uid);
+
+    const members = await this.cache.getChannelMembers(channel);
     const response: RoomControlResponse.CustomRequest = {
       name: "CustomRequest",
       args: {
@@ -400,13 +415,12 @@ class Sentry {
     request: RoomControlRequest.UpdateUserAttr
   ) {
     const { uid, userAttr } = request.args;
-    const [channel] = await this.channelCacheClient.getUserAttr(fromId, [
-      "channel"
-    ]);
-    console.log("->>> incoming updateuserattr command ->>>");
-    console.log(channel, fromId, uid, userAttr);
+    const [channel] = await this.cache.getUserAttr(fromId, ["channel"]);
 
-    const members = await this.channelCacheClient.getChannelMembers(channel);
+    log.info("->>> incoming updateuserattr command ->>>");
+    log.info(channel, fromId, uid, userAttr);
+
+    const members = await this.cache.getChannelMembers(channel);
     const response: RoomControlResponse.UserAttrUpdated = {
       name: "UserAttrUpdated",
       args: {
@@ -416,7 +430,7 @@ class Sentry {
       }
     };
     if (members.includes(uid)) {
-      await this.channelCacheClient.setUserAttr(uid, userAttr);
+      await this.cache.setUserAttr(uid, userAttr);
       for (const member of members) {
         this.sendMessage(member, JSON.stringify(response));
       }
@@ -428,15 +442,16 @@ class Sentry {
     request: RoomControlRequest.UpdateChannelAttr
   ) {
     const { channelAttr } = request.args;
-    const [channel] = await this.channelCacheClient.getUserAttr(fromId, [
-      "channel"
-    ]);
-    console.log("->>> incoming updatechannelattr command ->>>");
-    console.log(channel, fromId, channelAttr);
+    const [channel] = await this.cache.getUserAttr(fromId, ["channel"]);
+
+    log.info("->>> incoming updatechannelattr command ->>>");
+    log.info(channel, fromId, channelAttr);
+
     if (!channelAttr) {
       return;
     }
-    const members = await this.channelCacheClient.getChannelMembers(channel);
+
+    const members = await this.cache.getChannelMembers(channel);
     const response: RoomControlResponse.ChannelAttrUpdated = {
       name: "ChannelAttrUpdated",
       args: {
@@ -444,7 +459,7 @@ class Sentry {
         uid: fromId
       }
     };
-    await this.channelCacheClient.setChannelAttr(channel, channelAttr);
+    await this.cache.setChannelAttr(channel, channelAttr);
     for (const member of members) {
       this.sendMessage(member, JSON.stringify(response));
     }
