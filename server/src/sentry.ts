@@ -153,46 +153,46 @@ class Sentry {
   }
 
   /** Sentry get request from client by AgoraRTM p2p message */
-  private async onMessage(peerId: string, message: string) {
+  private onMessage(peerId: string, message: string) {
     // handle command
     try {
       const command: RoomControlRequest.Request = JSON.parse(message);
       switch (command.name) {
         case "Join":
-          await this.handleJoin(peerId, command as RoomControlRequest.Join);
+          this.handleJoin(peerId, command as RoomControlRequest.Join);
           break;
         case "Chat":
-          await this.handleChat(peerId, command as RoomControlRequest.Chat);
+          this.handleChat(peerId, command as RoomControlRequest.Chat);
           break;
         case "Mute":
-          await this.handleMute(peerId, command as RoomControlRequest.Mute);
+          this.handleMute(peerId, command as RoomControlRequest.Mute);
           break;
         case "Unmute":
-          await this.handleUnmute(peerId, command as RoomControlRequest.Unmute);
+          this.handleUnmute(peerId, command as RoomControlRequest.Unmute);
           break;
         case "Ring":
-          await this.handleRing(peerId, command as RoomControlRequest.Ring);
+          this.handleRing(peerId, command as RoomControlRequest.Ring);
           break;
         case "CustomRequest":
-          await this.handleCustomRequest(
+          this.handleCustomRequest(
             peerId,
             command as RoomControlRequest.CustomRequest
           );
           break;
         case "UpdateUserAttr":
-          await this.handleUpdateUserAttr(
+          this.handleUpdateUserAttr(
             peerId,
             command as RoomControlRequest.UpdateUserAttr
           );
           break;
         case "UpdateChannelAttr":
-          await this.handleUpdateChannelAttr(
+          this.handleUpdateChannelAttr(
             peerId,
             command as RoomControlRequest.UpdateChannelAttr
           );
           break;
         default:
-          await this.handleError(peerId, "Undefined Request");
+          this.handleError(peerId, "Undefined Request");
           break;
       }
     } catch (err) {
