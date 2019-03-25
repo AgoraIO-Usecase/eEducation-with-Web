@@ -31,11 +31,11 @@
       }
     }
     #recordBtn {
-      -webkit-app-region: no-drag !important;
       background-color: #ff4d89;
       border-radius: 0.9rem;
       padding: 0.2rem 1.5rem;
       height: auto;
+      margin-right: 6px;
       &.disabled {
         color: #006edf;
         background-color: #e8f5fc;
@@ -138,34 +138,9 @@
   .teacher-container {
     grid-area: teacher;
     position: relative;
-    .teacher-bar {
-      width: 100%;
-      position: absolute;
-      bottom: 0;
-      height: 1rem;
-      background: transparent;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      color: white;
-      padding-left: 0.25rem;
-      font-size: 0.65rem;
-    }
     .teacher-window {
-      position: relative;
       height: 100%;
-      .teacher-video {
-        position: absolute;
-        width: 100%;
-        bottom: 1.2rem;
-        display: flex;
-        top: 0;
-        overflow: hidden;
-        border-radius: 0.25rem;
-        align-items: center;
-        justify-content: center;
-        background: black;
-      }
+      width: 100%;
     }
   }
   .channel-container {

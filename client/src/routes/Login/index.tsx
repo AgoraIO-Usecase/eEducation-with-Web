@@ -43,7 +43,12 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
       uid
     });
 
-    props.history.push('/device_test');
+    if (role === 0) {
+      props.history.push('/classroom');
+    } else {
+      props.history.push('/device_test');
+    }
+    
   };
 
   return (

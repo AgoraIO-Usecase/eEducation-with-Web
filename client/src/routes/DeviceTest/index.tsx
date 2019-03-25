@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Form, Select, Button, Progress, Slider } from 'antd';
 import StreamPlayer from 'agora-stream-player';
@@ -61,12 +61,6 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
         setTestStatus(PrecallTestStatus.ERROR);
         setErrMsg(err.msg);
       });
-
-    return () => {
-      if (precallTestStream) {
-        precallTestStream.close();
-      }
-    };
   }, [currentCamera, currentMic]);
 
   // control volume when slider change
@@ -92,6 +86,11 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
     }
     setIsMusicOn(!isMusicOn);
   };
+
+  const handleNextStep = () => {
+    precallTestStream && precallTestStream.close();
+    props.history.push('/classroom')
+  }
 
   return (
     <div className="wrapper" id="deviceTesting">
@@ -208,8 +207,8 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
             />
           )}
           <div className="button-group">
-            <Button size="large" id="nextBtn" type="primary">
-              <Link to="/classroom">Next Step -></Link>
+            <Button size="large" id="nextBtn" type="primary" onClick={handleNextStep}>
+              Next Step ->
             </Button>
           </div>
         </section>

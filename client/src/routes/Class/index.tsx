@@ -1,6 +1,7 @@
 import { Button, notification, Spin, Tooltip, message } from 'antd';
 import { Map } from 'immutable';
 import React, { useState, useEffect } from 'react';
+import StreamPlayer from 'agora-stream-player';
 
 import ClassControlPanel from '../../components/ClassControlPanel';
 import { ClassroomHeader, RecordingButton, UserButtonGroup } from './utils';
@@ -12,14 +13,19 @@ import RecordingAPI, {
   STATUS_PENDING,
   STATUS_RECORDING
 } from '../../modules/Recording';
+import RoomControlClient from '../../modules/RoomControl';
+import createLogger from '../../utils/logger';
 import './index.scss';
 
 notification.config({
   placement: 'bottomLeft'
 });
 
+const classLog = createLogger('[Class]', '#FFF', '#5b8c00',true)
+
 export default function(props: { engine: Adapter; [propName: string]: any }) {
   const engine = props.engine;
+  const roomControlClient = new RoomControlClient(engine.state.appId);
   const { appId, channel, name, role, uid } = engine.state;
 
   // ---------------- Hooks ----------------
@@ -29,23 +35,34 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
     isPending: false
   });
 
-  const [teacherList, setTeacherList] = useState(Map());
-  const [studentsLst, setStudentsList] = useState(Map());
+  const [teacherList, setTeacherList] = useState<Map<number, any>>(Map());
+  const [studentsLst, setStudentsList] = useState<Map<number, any>>(Map());
   // const [messageList, setMessageList] = useState(List());
   const streamList = useMediaStream(engine.localClient);
-
   // initialize and subscribe events
   useEffect(() => {
     let mounted = true;
 
     // join class and add local user/stream
+    roomControlClient.init(String(uid), channel)
+      .then(() => {
+        roomControlClient.onResponse((responseStr) => {
+          classLog(responseStr)
+        })
+        roomControlClient.join(channel, {
+          role: role as any,
+          name,
+          streamId: uid,
+        });
+      })
+
     engine.enterClass().then(() => {
       _addUser({ name, role, uid });
     });
 
     return () => {
       mounted = false;
-      engine.leaveClass().catch(console.warn);
+      engine.leaveClass();
     };
   }, []);
 
@@ -72,9 +89,9 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
 
   const _getStream = (uid: number) => {};
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      engine.leaveClass();
+      await engine.leaveClass();
     } catch (err) {
       console.warn(err);
     } finally {
@@ -134,6 +151,7 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
         teacherName=""
         additionalButtonGroup={[
           <RecordingButton
+            key="recording-button"
             isRecording={recordState.isRecording}
             isPending={recordState.isPending}
             onClick={handleRecording}
@@ -143,12 +161,30 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
       />
 
       {/* Students Container */}
-      <section className="student-container">{[]}</section>
+      <section className="students-container">{
+        studentsLst.filter((info, uid) => {
+          return streamList.has(uid)
+        }).toArray().map(([uid, info]) => {
+          const { name } = info;
+          return (
+            <StreamPlayer key={uid} className="student-window" stream={streamList.get(uid)} networkDetect={true} label={name} video={true} audio={true} autoChange={false} />
+          )
+        })
+      }</section>
 
       {/* Whiteboard (tbd) */}
 
       {/* Teacher container */}
-      <section className="teacher-container">{[]}</section>
+      <section className="teacher-container">{
+        teacherList.filter((info, uid) => {
+          return streamList.has(uid)
+        }).toArray().map(([uid, info]) => {
+          const { name } = info;
+          return (
+            <StreamPlayer key={uid} className="teacher-window" stream={streamList.get(uid)} networkDetect={true} label={name} video={true} audio={true} autoChange={false} />
+          )
+        })
+      }</section>
 
       {/* ClassControl */}
       <ClassControlPanel

@@ -20,12 +20,12 @@ export enum ClientRole {
   TEACHER = 2
 }
 
-export enum StreamControlAction {
-  MUTE_VIDEO = 0,
-  UNMUTE_VIDEO = 1,
-  MUTE_AUDIO = 2,
-  UNMUTE_AUDIO = 3
-}
+// export enum StreamControlAction {
+//   MUTE_VIDEO = 0,
+//   UNMUTE_VIDEO = 1,
+//   MUTE_AUDIO = 2,
+//   UNMUTE_AUDIO = 3
+// }
 
 export interface AdapterState {
   appId: string;

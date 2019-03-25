@@ -62,8 +62,9 @@ export const RecordingButton: FunctionComponent<
       id="recordBtn"
       type="primary"
       onClick={props.onClick}
-      value={props.isRecording ? 'Stop Recording' : 'Start Recording'}
-    />
+    >
+      {props.isRecording ? 'Stop Recording' : 'Start Recording'}
+    </Button>
   );
 };
 

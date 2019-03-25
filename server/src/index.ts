@@ -1,4 +1,6 @@
 import express from "express";
+import cors from 'cors';
+
 import Sentry from './components/sentry'
 import {gateway as log} from './lib/logger'
 
@@ -6,6 +8,9 @@ require("dotenv").config();
 
 const sentry = new Sentry(process.env.AGORA_APPID || '')
 const app = express();
+app.use(cors());
+
+sentry.init();
 
 app.get("/", async (req, res) => {
   if (!sentry.online) {

@@ -11,4 +11,4 @@ redis:
   image: "redis:alpine"
   container_name: cache
   ports:
-    - "6333:6333"
+    - "6379:6379"

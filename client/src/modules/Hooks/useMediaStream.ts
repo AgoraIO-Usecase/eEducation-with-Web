@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Map } from 'immutable';
 
+import {hooksLog} from '../../utils/logger';
+
 const useMediaStream = (client: any): Map<number, any> => {
   const [streamList, setStreamList] = useState<Map<number, any>>(Map());
 
@@ -12,8 +14,19 @@ const useMediaStream = (client: any): Map<number, any> => {
         return;
       }
       const { stream } = evt;
-      setStreamList(streamList.set(stream.getId(), stream));
+      const id = stream.getId()
+      hooksLog(`=>>> incoming remote stream ${id} =>>>`)
+      setStreamList(streamList.set(id, stream));
     };
+    // remove stream
+    const removeRemote = (evt: any) => {
+      const {stream} = evt;
+      if (stream) {
+        const id = stream.getId();
+        hooksLog(`=>>> remove remote stream ${id} =>>>`)
+        setStreamList(streamList.remove(id));
+      }
+    }
     // subscribe when added
     const doSub = (evt: any) => {
       if (!mounted) {
@@ -27,18 +40,24 @@ const useMediaStream = (client: any): Map<number, any> => {
         return;
       }
       const { stream } = evt;
-      setStreamList(streamList.set(stream.getId(), stream));
+      const id = stream.getId();
+      hooksLog(`=>>> incoming local stream ${id} =>>>`)
+      setStreamList(streamList.set(id, stream));
     };
 
     client.on('stream-published', addLocal);
     client.on('stream-added', doSub);
     client.on('stream-subscribed', addRemote);
+    client.on('peer-leave', removeRemote);
+    client.on('stream-removed', removeRemote);
 
     return () => {
       mounted = false;
       client.gatewayClient.removeEventListener('stream-published', addLocal);
       client.gatewayClient.removeEventListener('stream-added', doSub);
       client.gatewayClient.removeEventListener('stream-subscribed', addRemote);
+      client.gatewayClient.removeEventListener('peer-leave', removeRemote);
+      client.gatewayClient.removeEventListener('stream-removed', removeRemote);
     };
   }, []);
 
