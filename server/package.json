@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "agora-node-rtm": "git+https://github.com/plutoless/rtm_nodejs.git#dev/pkg",
+    "agora-node-rtm": "git+https://github.com/AgoraIO-Community/Agora-RTM-Nodejs.git",
     "bluebird": "^3.5.3",
     "chalk": "^2.4.2",
     "cors": "^2.8.5",

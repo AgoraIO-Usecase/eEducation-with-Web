@@ -11,7 +11,7 @@ COPY . .
 
 RUN npm run prestart
 
-COPY node_modules/agora-node-rtm/lib/libagora_rtm_sdk.so /usr/lib/
+COPY node_modules/agora-node-rtm/libagora_rtm_sdk.so /usr/lib/
 
 EXPOSE 8080
 
