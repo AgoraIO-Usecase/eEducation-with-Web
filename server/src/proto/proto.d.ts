@@ -101,8 +101,8 @@ declare namespace RoomControlResponse {
     };
   }
 
-  export interface JoinSucess extends Response {
-    name: "JoinSucess";
+  export interface JoinSuccess extends Response {
+    name: "JoinSuccess";
     args: {
       channelAttr: RoomControl.ChannelAttr;
       members: Array<RoomControl.UserAttr & { uid: string }>;

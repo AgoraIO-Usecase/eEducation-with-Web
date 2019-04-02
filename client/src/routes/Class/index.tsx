@@ -14,6 +14,7 @@ import RecordingAPI, {
   STATUS_RECORDING
 } from '../../modules/Recording';
 import RoomControlClient from '../../modules/RoomControl';
+import RoomControlStore from '../../store/RoomControl';
 import createLogger from '../../utils/logger';
 import './index.scss';
 
@@ -23,9 +24,9 @@ notification.config({
 
 const classLog = createLogger('[Class]', '#FFF', '#5b8c00',true)
 
-export default function(props: { engine: Adapter; [propName: string]: any }) {
+export default function(props: { engine: Adapter; roomClient: RoomControlClient; [propName: string]: any }) {
   const engine = props.engine;
-  const roomControlClient = new RoomControlClient(engine.state.appId);
+  const roomClient = props.roomClient;
   const { appId, channel, name, role, uid } = engine.state;
 
   // ---------------- Hooks ----------------
@@ -34,32 +35,16 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
     isRecording: false,
     isPending: false
   });
-
-  const [teacherList, setTeacherList] = useState<Map<number, any>>(Map());
-  const [studentsLst, setStudentsList] = useState<Map<number, any>>(Map());
-  // const [messageList, setMessageList] = useState(List());
+  const {
+    teacherList, studentList, channelAttr, messageList
+  } = RoomControlStore.getState();
   const streamList = useMediaStream(engine.localClient);
+
   // initialize and subscribe events
   useEffect(() => {
     let mounted = true;
-
     // join class and add local user/stream
-    roomControlClient.init(String(uid), channel)
-      .then(() => {
-        roomControlClient.onResponse((responseStr) => {
-          classLog(responseStr)
-        })
-        roomControlClient.join(channel, {
-          role: role as any,
-          name,
-          streamId: uid,
-        });
-      })
-
-    engine.enterClass().then(() => {
-      _addUser({ name, role, uid });
-    });
-
+    engine.enterClass()
     return () => {
       mounted = false;
       engine.leaveClass();
@@ -68,32 +53,14 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
 
   // ---------------- Methods or Others ----------------
   // Methods or sth else used in this component
-
-  const _addUser = (userInfo: {
-    name: string;
-    role: ClientRole;
-    uid: number;
-  }) => {
-    switch (userInfo.role) {
-      default:
-      case 0:
-        break;
-      case 1:
-        setStudentsList(studentsLst.set(userInfo.uid, userInfo));
-        break;
-      case 2:
-        setTeacherList(teacherList.set(userInfo.uid, userInfo));
-        break;
-    }
-  };
-
   const _getStream = (uid: number) => {};
 
   const handleLogout = async () => {
     try {
       await engine.leaveClass();
+      
     } catch (err) {
-      console.warn(err);
+      classLog(err);
     } finally {
       props.history.push('/');
     }
@@ -113,7 +80,7 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
           });
         })
         .catch(err => {
-          console.error(err);
+          classLog(err);
           setRecordState({
             isRecording: false,
             isPending: false
@@ -134,7 +101,7 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
           });
         })
         .catch(err => {
-          console.error(err);
+          classLog(err);
           setRecordState({
             isRecording: false,
             isPending: false
@@ -162,7 +129,7 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
 
       {/* Students Container */}
       <section className="students-container">{
-        studentsLst.filter((info, uid) => {
+        studentList.filter((info, uid) => {
           return streamList.has(uid)
         }).toArray().map(([uid, info]) => {
           const { name } = info;

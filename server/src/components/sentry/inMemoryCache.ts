@@ -43,12 +43,12 @@ export default class ChannelCache {
   // };
 
   addChannel = async (channel: string) => {
-    log.info("add channel", channel);
+    log.info(`add channel ${channel}`);
     return await this.redisClient.saddAsync(this.channelsHash, channel);
   };
 
   removeChannel = async (channel: string) => {
-    log.info("remove channel", channel);
+    log.info(`remove channel ${channel}`);
     return await this.redisClient.sremAsync(this.channelsHash, channel);
   };
 
@@ -85,12 +85,12 @@ export default class ChannelCache {
   };
 
   setUserAttr = async (uid: string, kvs: Partial<RoomControl.UserAttr>) => {
-    log.info("set user attr for", uid, kvs);
+    log.info(`set user attr for uid, ${JSON.stringify(kvs)}`);
     return await this.redisClient.hmsetAsync(hashUser(uid), kvs);
   };
 
   clearUserAttr = async (uid: string) => {
-    log.info("clear user attr for", uid);
+    log.info(`clear user attr for ${uid}`);
     return await this.redisClient.delAsync(hashUser(uid));
   };
 
@@ -119,18 +119,18 @@ export default class ChannelCache {
     channel: string,
     kvs: Partial<RoomControl.ChannelAttr>
   ) => {
-    log.info("set channel attr for", channel, kvs);
+    log.info(`set channel attr for ${channel}, ${JSON.stringify(kvs)}`);
     return await this.redisClient.hmsetAsync(hashChannel(channel), kvs);
   };
 
   clearChannelAttr = async (channel: string) => {
-    log.info("clear channel attr for", channel);
+    log.info(`clear channel attr for ${channel}`);
     await this.redisClient.delAsync(hashChannel(channel));
     await this.redisClient.delAsync(hashChannelMembers(channel));
   };
 
   addChannelMember = async (channel: string, uid: string | string[]) => {
-    log.info("add member", uid, "to channel", channel);
+    log.info(`add member ${uid} to channel ${channel}`)
     if (Array.isArray(uid)) {
       return await this.redisClient.saddAsync(
         hashChannelMembers(channel),
@@ -146,7 +146,7 @@ export default class ChannelCache {
   };
 
   removeChannelMember = async (channel: string, uid: string) => {
-    log.info("remove member", uid, "from channel", channel);
+    log.info(`add member ${uid} to channel ${channel}`)
     return await this.redisClient.sremAsync(hashChannelMembers(channel), uid);
   };
 

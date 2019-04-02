@@ -2,7 +2,9 @@ import React, { useState, useRef, MutableRefObject } from 'react';
 import { Form, Input, Radio, Button, Spin, message } from 'antd';
 
 import Adapter from '../../modules/Adapter';
+import RoomControlStore from "../../store/RoomControl";
 import './index.scss';
+import RoomControlClient from '../../modules/RoomControl';
 
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
@@ -13,42 +15,63 @@ const LoadingMask = (
   </div>
 );
 
-export default function(props: { engine: Adapter; [propName: string]: any }) {
+export default function(props: { engine: Adapter; roomClient: RoomControlClient; [propName: string]: any }) {
   const engine = props.engine;
-
+  const roomClient = props.roomClient
   // ---------------- Hooks ----------------
   // Hooks used in this component
 
   const channelRef: MutableRefObject<any> = useRef(null);
   const nameRef: MutableRefObject<any> = useRef(null);
   const roleRef: MutableRefObject<any> = useRef(null);
+  const dispatch = RoomControlStore.getDispatcher();
 
   // ---------------- Methods or Others ----------------
   // Methods or sth else used in this component
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-
     const [channel, name, role] = [
       channelRef.current.state.value,
       nameRef.current.state.value,
       roleRef.current.state.value
     ];
     const uid = Number(String(new Date().getTime()).slice(7));
-
     engine.setState({
       channel,
       name,
       role,
       uid
     });
+    try {
+      await roomClient.init(String(uid), channel);
+      roomClient.on('MemberJoined', (member: any) => {
+        dispatch({action: 'addMember', member});
+      })
+      roomClient.on('MemberLeft', (args: any) => {
+        dispatch({action: 'removeMember', uid: args.uid});
+      })
+      roomClient.on('UserAttrUpdated', (args: any) => {
+        dispatch({action: 'updateUserAttr', uid: args.target, userAttr: args.userAttr});
+      })
+      roomClient.on('ChannelAttrUpdated', (args: any) => {
+        dispatch({action: 'updateChannelAttr', channelAttr: args.channelAttr});
+      })
+      roomClient.on('ChannelMessage', (args: any) => {
+        dispatch({action: 'addChannelMessage', message: args.message, uid: args.uid})
+      })
+      const {channelAttr, members} = await roomClient.join(channel, {name, role, streamId: uid})
+      dispatch({action: 'updateChannelAttr', channelAttr});
+      dispatch({action: 'addMember', members});
 
-    if (role === 0) {
-      props.history.push('/classroom');
-    } else {
-      props.history.push('/device_test');
-    }
-    
+      if (role === 0) {
+        props.history.push('/classroom');
+      } else {
+        props.history.push('/device_test');
+      }
+    } catch (err) {
+      message.error(`Failed to join ${err}`)
+    }    
   };
 
   return (
