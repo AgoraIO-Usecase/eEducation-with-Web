@@ -36,17 +36,17 @@ export default function(props: { engine: Adapter; roomClient: RoomControlClient;
       nameRef.current.state.value,
       roleRef.current.state.value
     ];
-    const uid = Number(String(new Date().getTime()).slice(7));
+    const uid = String(new Date().getTime()).slice(7);
     engine.setState({
       channel,
       name,
       role,
-      uid
+      uid: Number(uid)
     });
     try {
-      await roomClient.init(String(uid), channel);
+      await roomClient.init(uid, channel);
       roomClient.on('MemberJoined', (member: any) => {
-        dispatch({action: 'addMember', member});
+        dispatch({action: 'addMember', members: member});
       })
       roomClient.on('MemberLeft', (args: any) => {
         dispatch({action: 'removeMember', uid: args.uid});
@@ -60,7 +60,9 @@ export default function(props: { engine: Adapter; roomClient: RoomControlClient;
       roomClient.on('ChannelMessage', (args: any) => {
         dispatch({action: 'addChannelMessage', message: args.message, uid: args.uid})
       })
-      const {channelAttr, members} = await roomClient.join(channel, {name, role, streamId: uid})
+      const {channelAttr, members} = await roomClient.join(channel, {name, role, streamId: Number(uid)}, role === 2 ? {
+        teacherId: uid
+      } : undefined)
       dispatch({action: 'updateChannelAttr', channelAttr});
       dispatch({action: 'addMember', members});
 

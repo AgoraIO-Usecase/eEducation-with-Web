@@ -37,6 +37,10 @@ export default class RoomControlClient extends EventEmitter{
       });
       this.channel = this.client.createChannel(channel);
       await this.channel.join();
+      // @ts-ignore
+      window.rtmClient = this.client;
+      // @ts-ignore
+      window.channel = this.channel;
       this.online = true;
       const {data} = await axios.get(`${ROOM_CONTROL_SERVICE}/`);
       rtmLog(`Get response from sentry ${data}`)
@@ -71,7 +75,7 @@ export default class RoomControlClient extends EventEmitter{
   public join(
     channel: string,
     userAttr: RoomControl.UserAttr,
-    channelAttr?: RoomControl.ChannelAttr,
+    channelAttr?: Partial<RoomControl.ChannelAttr>,
     timeout = 15000
   ): Promise<any> {
     return new Promise((resolve, reject) => {

@@ -11,8 +11,8 @@ type UserInfo = {
 export default EasyState({
   state: {
     channelAttr: Map<string, string>(),
-    studentList: Map<number, any>(),
-    teacherList: Map<number, any>(),
+    studentList: Map<string, any>(),
+    teacherList: Map<string, any>(),
     messageList: [] as Array<{uid: string, message: string}>
   },
 
@@ -42,7 +42,6 @@ export default EasyState({
             tempTeacherList = tempTeacherList.set(members.uid, members);
           }
         }
-
       }
       return {
         channelAttr: state.channelAttr,

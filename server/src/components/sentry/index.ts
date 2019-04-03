@@ -62,7 +62,9 @@ class Sentry {
     });
 
     // do login
+    log.info(`Sentry trying to login... App ID: ${this.appId}, uid: ${this.uid}`)
     await this.rtmController.login(this.appId, this.uid);
+    log.info("Sentry succeed to login")
     this.online = true;
   };
 
@@ -220,6 +222,7 @@ class Sentry {
         const channelController = this.channelList.get(channelName);
         if (channelController) {
           await channelController.leave();
+          channelController.release()
           this.channelList.delete(channelName);
         }
         try {

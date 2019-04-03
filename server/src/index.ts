@@ -19,7 +19,7 @@ app.get("/", async (req, res) => {
       await sentry.init()
       log.info('Sentry initialized successfully')
     } catch(err) {
-      log.error('Sentry failed to initialize')
+      log.error(`Sentry failed to initialize ${err}`)
     }
   }
   res.send(sentry.uid)

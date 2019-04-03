@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Map } from 'immutable';
 
 import {hooksLog} from '../../utils/logger';
 
-const useMediaStream = (client: any): Map<number, any> => {
-  const [streamList, setStreamList] = useState<Map<number, any>>(Map());
+const useMediaStream = (client: any): any[] => {
+  const [streamList, setStreamList] = useState<any[]>([]);
+  const [count, setCount] = useState(0)
 
   useEffect(() => {
     let mounted = true;
@@ -16,7 +16,11 @@ const useMediaStream = (client: any): Map<number, any> => {
       const { stream } = evt;
       const id = stream.getId()
       hooksLog(`=>>> incoming remote stream ${id} =>>>`)
-      setStreamList(streamList.set(id, stream));
+      setStreamList(streamList => {
+        streamList.push(stream)
+        return streamList
+      });
+      setCount(count => count+1)
     };
     // remove stream
     const removeRemote = (evt: any) => {
@@ -24,7 +28,14 @@ const useMediaStream = (client: any): Map<number, any> => {
       if (stream) {
         const id = stream.getId();
         hooksLog(`=>>> remove remote stream ${id} =>>>`)
-        setStreamList(streamList.remove(id));
+        const index = (streamList.findIndex(item => item.getId() === id))
+        if(index !== -1) {
+          setStreamList(streamList => {
+            streamList.splice(index, 1)
+            return streamList
+          });
+          setCount(count => count-1)
+        }
       }
     }
     // subscribe when added
@@ -42,7 +53,13 @@ const useMediaStream = (client: any): Map<number, any> => {
       const { stream } = evt;
       const id = stream.getId();
       hooksLog(`=>>> incoming local stream ${id} =>>>`)
-      setStreamList(streamList.set(id, stream));
+      const tempList = [...streamList]
+      tempList.push(stream)
+      setStreamList(streamList => {
+        streamList.push(stream)
+        return streamList
+      });
+      setCount(count => count+1)
     };
 
     client.on('stream-published', addLocal);
@@ -59,9 +76,9 @@ const useMediaStream = (client: any): Map<number, any> => {
       client.gatewayClient.removeEventListener('peer-leave', removeRemote);
       client.gatewayClient.removeEventListener('stream-removed', removeRemote);
     };
-  }, []);
+  }, [0]);
 
-  return streamList;
+  return [streamList, count];
 };
 
 export default useMediaStream;

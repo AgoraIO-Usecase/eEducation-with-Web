@@ -128,18 +128,6 @@ class Adapter {
     return stream;
   }
 
-  public async initClass(
-    channel: string,
-    userInfo: {
-      name: string;
-      role: ClientRole;
-      uid: number;
-    }
-  ) {
-    /** ----------------  tbd ----------------  */
-    /** bloc.sink */
-  }
-
   public async enterClass(token?: string | null) {
     // get related state
     const {

@@ -1,6 +1,6 @@
 import { Button, notification, Spin, Tooltip, message } from 'antd';
 import { Map } from 'immutable';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import StreamPlayer from 'agora-stream-player';
 
 import ClassControlPanel from '../../components/ClassControlPanel';
@@ -38,22 +38,18 @@ export default function(props: { engine: Adapter; roomClient: RoomControlClient;
   const {
     teacherList, studentList, channelAttr, messageList
   } = RoomControlStore.getState();
-  const streamList = useMediaStream(engine.localClient);
-
+  const [streamList, length] = useMediaStream(engine.localClient);
   // initialize and subscribe events
   useEffect(() => {
-    let mounted = true;
     // join class and add local user/stream
     engine.enterClass()
     return () => {
-      mounted = false;
       engine.leaveClass();
     };
   }, []);
 
   // ---------------- Methods or Others ----------------
   // Methods or sth else used in this component
-  const _getStream = (uid: number) => {};
 
   const handleLogout = async () => {
     try {
@@ -110,12 +106,42 @@ export default function(props: { engine: Adapter; roomClient: RoomControlClient;
     }
   };
 
+  const studentStreams = useMemo(() => {
+    return studentList.toArray().map(([uid, info]) => {
+      const { name } = info;
+      const index = streamList.findIndex((stream: any) => stream.getId() === Number(info.streamId))
+      if (index !== -1) {
+        const stream = streamList[index]
+        return (
+          <StreamPlayer key={stream.getId()} className="student-window" stream={stream} networkDetect={true} label={name} video={true} audio={true} autoChange={false} />
+        );
+      } else {
+        return null
+      }
+    })
+  }, [studentList, length]);
+
+  const teacherStream = useMemo(() => {
+    return teacherList.toArray().map(([uid, info]) => {
+      const { name } = info;
+      const index = streamList.findIndex((stream: any) => stream.getId() === Number(info.streamId))
+      if (index !== -1) {
+        const stream = streamList[index]
+        return (
+          <StreamPlayer key={stream.getId()} className="teacher-window" stream={stream} networkDetect={true} label={name} video={true} audio={true} autoChange={false} />
+        );
+      } else {
+        return null
+      }
+    })
+  }, [teacherList, length])
+
   return (
     <div className="wrapper" id="classroom">
       {/* Header */}
       <ClassroomHeader
         channelName={channel}
-        teacherName=""
+        teacherName={teacherList.size && channelAttr.get("teacherId") && teacherList.get(channelAttr.get("teacherId") as string).name}
         additionalButtonGroup={[
           <RecordingButton
             key="recording-button"
@@ -129,28 +155,14 @@ export default function(props: { engine: Adapter; roomClient: RoomControlClient;
 
       {/* Students Container */}
       <section className="students-container">{
-        studentList.filter((info, uid) => {
-          return streamList.has(uid)
-        }).toArray().map(([uid, info]) => {
-          const { name } = info;
-          return (
-            <StreamPlayer key={uid} className="student-window" stream={streamList.get(uid)} networkDetect={true} label={name} video={true} audio={true} autoChange={false} />
-          )
-        })
+        studentStreams
       }</section>
 
       {/* Whiteboard (tbd) */}
 
       {/* Teacher container */}
       <section className="teacher-container">{
-        teacherList.filter((info, uid) => {
-          return streamList.has(uid)
-        }).toArray().map(([uid, info]) => {
-          const { name } = info;
-          return (
-            <StreamPlayer key={uid} className="teacher-window" stream={streamList.get(uid)} networkDetect={true} label={name} video={true} audio={true} autoChange={false} />
-          )
-        })
+        teacherStream
       }</section>
 
       {/* ClassControl */}
