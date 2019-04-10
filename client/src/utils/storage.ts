@@ -52,4 +52,3 @@ class StorageManager {
 
 export const sessionStorage = new StorageManager('sessionStorage');
 export const localStorage = new StorageManager('localStorage');
-export default StorageManager;

@@ -16,7 +16,8 @@ enum PrecallTestStatus {
   ERROR
 }
 
-export default function(props: { engine: Adapter; [propName: string]: any }) {
+export default function(props: any) {
+  const adapter: Adapter = props.adapter
   // ---------------- Hooks ----------------
   // Hooks used in this component
   const musicRef = useRef(null);
@@ -29,8 +30,8 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
   );
   const [precallTestErrMsg, setErrMsg] = useState('');
 
-  const cameraList = useCamera(props.engine.localClient);
-  const microphoneList = useMicrophone(props.engine.localClient);
+  const cameraList = useCamera(adapter.rtcEngine.localClient);
+  const microphoneList = useMicrophone(adapter.rtcEngine.localClient);
   const volume = useVolume(precallTestStream);
 
   const [currentCamera, setCurrentCamera] = useState<string | undefined>(
@@ -47,13 +48,13 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
       setErrMsg('');
     }
 
-    props.engine
-      .$createStream({
+    adapter.rtcEngine
+      .createStream({
         streamID: Number(String(new Date().getTime()).slice(7)),
         video: true,
         audio: true
       })
-      .then(stream => {
+      .then((stream) => {
         setStream(stream);
         setTestStatus(PrecallTestStatus.SUCCESS);
       })
@@ -207,7 +208,7 @@ export default function(props: { engine: Adapter; [propName: string]: any }) {
             />
           )}
           <div className="button-group">
-            <Button size="large" id="nextBtn" type="primary" onClick={handleNextStep}>
+            <Button disabled={precallTestStatus === PrecallTestStatus.PENDING} size="large" id="nextBtn" type="primary" onClick={handleNextStep}>
               Next Step ->
             </Button>
           </div>

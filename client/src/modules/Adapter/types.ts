@@ -20,25 +20,43 @@ export enum ClientRole {
   TEACHER = 2
 }
 
-// export enum StreamControlAction {
-//   MUTE_VIDEO = 0,
-//   UNMUTE_VIDEO = 1,
-//   MUTE_AUDIO = 2,
-//   UNMUTE_AUDIO = 3
-// }
+export interface RTCEngineConfig {
+  channel: string;
+  streamId: number
+  role: ClientRole;
 
-export interface AdapterState {
-  appId: string;
-  videoProfile?: VideoProfiles;
+  // cameraId?: string;
+  // microphoneId?: string;
+  // videoProfile?: VideoProfiles;
   mode?: Mode;
   codec?: Codec;
-  channel: string;
   shareId?: number;
-  cameraId?: string;
-  microphoneId?: string;
-  uid: number;
+
+  [propName: string]: any;
+}
+
+export interface SignalConfig {
+  channel: string;
+  uid: string;
+  streamId: number
   name: string;
   role: ClientRole;
-  [propName: string]: any;
-  // tbc
+}
+
+export type AdapterConfig = SignalConfig & RTCEngineConfig
+
+export interface UserAttr {
+  role: ClientRole;
+  name: string;
+  streamId: number;
+  [props: string]: string | number;
+}
+
+export interface ChannelAttr {
+  isSharing: number;
+  isRecording: number;
+  shareId: number;
+  whiteboardId: string;
+  teacherId: string;
+  [props: string]: string | number;
 }

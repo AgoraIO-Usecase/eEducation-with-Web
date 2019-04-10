@@ -6,16 +6,15 @@ import StreamPlayer from 'agora-stream-player';
 import ClassControlPanel from '../../components/ClassControlPanel';
 import { ClassroomHeader, RecordingButton, UserButtonGroup } from './utils';
 // import Whiteboard from "../../components/Whiteboard";
-import Adapter from '../../modules/Adapter';
 import { useMediaStream } from '../../modules/Hooks';
 import RecordingAPI, {
   STATUS_IDLE,
   STATUS_PENDING,
   STATUS_RECORDING
 } from '../../modules/Recording';
-import RoomControlClient from '../../modules/RoomControl';
+import Adapter from '../../modules/Adapter';
 import RoomControlStore from '../../store/RoomControl';
-import createLogger from '../../utils/logger';
+import {createLogger, session} from '../../utils';
 import './index.scss';
 
 notification.config({
@@ -24,10 +23,10 @@ notification.config({
 
 const classLog = createLogger('[Class]', '#FFF', '#5b8c00',true)
 
-export default function(props: { engine: Adapter; roomClient: RoomControlClient; [propName: string]: any }) {
-  const engine = props.engine;
-  const roomClient = props.roomClient;
-  const { appId, channel, name, role, uid } = engine.state;
+export default function(props: any) {
+  const adapter: Adapter = props.adapter;
+
+  const { appId, channel = '', name, role, uid } = adapter.config;
 
   // ---------------- Hooks ----------------
   // Hooks used in this component
@@ -38,13 +37,14 @@ export default function(props: { engine: Adapter; roomClient: RoomControlClient;
   const {
     teacherList, studentList, channelAttr, messageList
   } = RoomControlStore.getState();
-  const [streamList, length] = useMediaStream(engine.localClient);
+  const [streamList, length] = useMediaStream(adapter.rtcEngine.localClient);
   // initialize and subscribe events
   useEffect(() => {
     // join class and add local user/stream
-    engine.enterClass()
+    adapter.rtcEngine.join()
     return () => {
-      engine.leaveClass();
+      adapter.rtcEngine.leave()
+      session.clear('adapterConfig')
     };
   }, []);
 
@@ -53,8 +53,7 @@ export default function(props: { engine: Adapter; roomClient: RoomControlClient;
 
   const handleLogout = async () => {
     try {
-      await engine.leaveClass();
-      
+      await adapter.rtcEngine.leave();
     } catch (err) {
       classLog(err);
     } finally {
@@ -96,7 +95,7 @@ export default function(props: { engine: Adapter; roomClient: RoomControlClient;
             isPending: false
           });
         })
-        .catch(err => {
+        .catch((err: any) => {
           classLog(err);
           setRecordState({
             isRecording: false,

@@ -1,30 +1,21 @@
-import React, { useState, useRef, MutableRefObject } from 'react';
+import React, { useRef, MutableRefObject } from 'react';
 import { Form, Input, Radio, Button, Spin, message } from 'antd';
 
-import Adapter from '../../modules/Adapter';
-import RoomControlStore from "../../store/RoomControl";
 import './index.scss';
-import RoomControlClient from '../../modules/RoomControl';
+import { session } from '../../utils'
+import Adapter from '../../modules/Adapter';
 
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
 
-const LoadingMask = (
-  <div className="mask">
-    <Spin size="large" />
-  </div>
-);
-
-export default function(props: { engine: Adapter; roomClient: RoomControlClient; [propName: string]: any }) {
-  const engine = props.engine;
-  const roomClient = props.roomClient
+export default function(props: any) {
+  const adapter: Adapter = props.adapter;
+  const initEngine = props.initEngine;
   // ---------------- Hooks ----------------
   // Hooks used in this component
-
   const channelRef: MutableRefObject<any> = useRef(null);
   const nameRef: MutableRefObject<any> = useRef(null);
   const roleRef: MutableRefObject<any> = useRef(null);
-  const dispatch = RoomControlStore.getDispatcher();
 
   // ---------------- Methods or Others ----------------
   // Methods or sth else used in this component
@@ -37,48 +28,37 @@ export default function(props: { engine: Adapter; roomClient: RoomControlClient;
       roleRef.current.state.value
     ];
     const uid = String(new Date().getTime()).slice(7);
-    engine.setState({
-      channel,
-      name,
-      role,
-      uid: Number(uid)
-    });
-    try {
-      await roomClient.init(uid, channel);
-      roomClient.on('MemberJoined', (member: any) => {
-        dispatch({action: 'addMember', members: member});
-      })
-      roomClient.on('MemberLeft', (args: any) => {
-        dispatch({action: 'removeMember', uid: args.uid});
-      })
-      roomClient.on('UserAttrUpdated', (args: any) => {
-        dispatch({action: 'updateUserAttr', uid: args.target, userAttr: args.userAttr});
-      })
-      roomClient.on('ChannelAttrUpdated', (args: any) => {
-        dispatch({action: 'updateChannelAttr', channelAttr: args.channelAttr});
-      })
-      roomClient.on('ChannelMessage', (args: any) => {
-        dispatch({action: 'addChannelMessage', message: args.message, uid: args.uid})
-      })
-      const {channelAttr, members} = await roomClient.join(channel, {name, role, streamId: Number(uid)}, role === 2 ? {
-        teacherId: uid
-      } : undefined)
-      dispatch({action: 'updateChannelAttr', channelAttr});
-      dispatch({action: 'addMember', members});
+    const config = {
+      channel, name, role, uid, 
+      streamId: Number.parseInt(uid, 10),
+      shareId: 2
+    }
+    session.save('adapterConfig', config)
+    initEngine(config).then(() => {
+      // if teacher
+      if(role === 2) {
+        adapter.signal.request(JSON.stringify({
+          name: 'UpdateChannelAttr',
+          args: {
+            channelAttr: {
+              teacherId: uid,
+              shareId: 2
+            }
+          }
+        }))
+      }
 
       if (role === 0) {
         props.history.push('/classroom');
       } else {
         props.history.push('/device_test');
       }
-    } catch (err) {
-      message.error(`Failed to join ${err}`)
-    }    
+
+    })
   };
 
   return (
     <div className="wrapper" id="index">
-      {/* {isLoading ? LoadingMask : null} */}
 
       <main className="main">
         <section className="content">
@@ -91,21 +71,21 @@ export default function(props: { engine: Adapter; roomClient: RoomControlClient;
                 <Input
                   ref={channelRef}
                   id="channel"
-                  defaultValue={engine.state.channel}
+                  defaultValue={adapter.config.channel}
                 />
               </FormItem>
               <FormItem label="Your Name" colon={false}>
                 <Input
                   ref={nameRef}
                   id="username"
-                  defaultValue={engine.state.name}
+                  defaultValue={adapter.config.name}
                 />
               </FormItem>
               <FormItem>
                 <RadioGroup
                   ref={roleRef}
                   id="role"
-                  defaultValue={engine.state.role}
+                  defaultValue={adapter.config.role}
                 >
                   <Radio value={2}>Teacher</Radio>
                   <Radio value={1}>Student</Radio>

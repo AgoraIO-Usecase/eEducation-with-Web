@@ -14,6 +14,9 @@ const useCameras = (client: any): MediaDeviceInfo[] => {
     let mounted = true;
 
     const onChange = () => {
+      if (!client) {
+        return;
+      }
       client
         .getCameras()
         .then((cameras: MediaDeviceInfo[]) => {
@@ -23,13 +26,14 @@ const useCameras = (client: any): MediaDeviceInfo[] => {
         })
         .catch(noop);
     };
-
-    client.on('cameraChanged', onChange);
+    
+    client && client.on('cameraChanged', onChange);
+    
     onChange();
 
     return () => {
       mounted = false;
-      client.gatewayClient.removeEventListener('cameraChanged', onChange);
+      client && client.gatewayClient.removeEventListener('cameraChanged', onChange);
     };
   }, []);
 
