@@ -24,7 +24,12 @@ export default EasyState({
         for (let item of members) {
           if (Number(item.role) === 1) {
             // student
-            tempStudentsList = tempStudentsList.set(item.uid, item);
+            tempStudentsList = tempStudentsList.set(item.uid, {
+              ...item,
+              video: true,
+              audio: true,
+              chat: true
+            });
           }
           if (Number(item.role) === 2) {
             // teacher
@@ -35,7 +40,12 @@ export default EasyState({
         if(members) {
           if (Number(members.role) === 1) {
             // student
-            tempStudentsList = tempStudentsList.set(members.uid, members);
+            tempStudentsList = tempStudentsList.set(members.uid, {
+              ...members,
+              video: true,
+              audio: true,
+              chat: true
+            });
           }
           if (Number(members.role)=== 2) {
             // teacher

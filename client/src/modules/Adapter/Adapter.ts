@@ -7,15 +7,17 @@ export default class Adapter {
   public rtcEngine: RTCEngine;
   public signal: Signal;
   public config: any;
+  public appId: string;
 
   constructor(appId: string) {
     this.initialized = false;
     this.signal = new Signal(appId);
     this.rtcEngine = new RTCEngine(appId);
+    this.appId = appId
     this.config = {
       channel: "",
       shareId: 2,
-      role: 0,
+      role: 1,
       streamId: -1,
     }
   }

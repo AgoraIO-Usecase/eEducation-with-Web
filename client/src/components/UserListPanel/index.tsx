@@ -9,9 +9,9 @@ import './index.scss';
 
 interface UserItemProps {
   username: string;
-  uid: number;
-  onAction?: (actionType: ActionType, action: Action, uid: number) => any;
-  controllable: boolean;
+  uid: string;
+  onAction?: (actionType: ActionType, action: Action, uid: string) => any;
+  controllable?: boolean;
   video: boolean;
   audio: boolean;
   chat: boolean;
@@ -19,7 +19,7 @@ interface UserItemProps {
 
 export interface UserListPanelProps {
   users: UserItemProps[];
-  onAction?: (actionType: ActionType, action: Action, uid?: number) => any;
+  onAction?: (actionType: ActionType, action: Action, uid?: string) => any;
   controllable: boolean;
   className?: string;
   style?: CSSProperties;
@@ -86,7 +86,7 @@ const UserListPanel: FunctionComponent<UserListPanelProps> = props => {
   const actionHandlerFromParent = (
     actionType: ActionType,
     action: Action,
-    uid?: number
+    uid?: string
   ) => {
     props.onAction && props.onAction(actionType, action, uid);
   };
@@ -113,7 +113,7 @@ const UserListPanel: FunctionComponent<UserListPanelProps> = props => {
     <div style={props.style} className={className}>
       <div className="user-list-box">
         {props.users.map(
-          ({ uid, username, video, audio, chat, controllable }) => {
+          ({ uid, username, video, audio, chat }) => (
             <UserItem
               key={uid}
               uid={uid}
@@ -121,10 +121,10 @@ const UserListPanel: FunctionComponent<UserListPanelProps> = props => {
               video={video}
               audio={audio}
               chat={chat}
-              controllable={controllable}
+              controllable={props.controllable}
               onAction={actionHandlerFromParent}
-            />;
-          }
+            />
+          )
         )}
       </div>
       {props.controllable ? (

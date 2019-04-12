@@ -33,7 +33,7 @@ class RTCEngine {
       shareId: 2,
       mode: Mode.LIVE,
       codec: Codec.VP8,
-      role: ClientRole.AUDIENCE,
+      role: ClientRole.STUDENT,
       streamId: -1
     }
   }

@@ -13,7 +13,7 @@ const TabPane = Tabs.TabPane;
 
 export type ClassControlPanelProps = {
   onSendMessage?: (message: string) => void;
-  onAction?: (actionType: ActionType, action: Action, uid?: number) => any;
+  onAction?: (actionType: ActionType, action: Action, uid?: string) => any;
   className?: string;
 } & ChatPanelProps &
   UserListPanelProps;
@@ -28,7 +28,7 @@ const ClassControlPanel: FunctionComponent<ClassControlPanelProps> = props => {
   const handleAction = (
     actionType: ActionType,
     action: Action,
-    uid?: number
+    uid?: string
   ) => {
     props.onAction && props.onAction(actionType, action, uid);
   };

@@ -29,19 +29,24 @@ class RecordingAPIClass {
     | typeof STATUS_IDLE;
 
   public start(appId: string, channel: string, token?: string): Promise<any> {
-    this.status = STATUS_PENDING;
-    return axios
-      .post(`${RECORDING_SERVICE}/v1/recording/start`, {
-        appid: appId,
-        channel: channel,
-        key: token
-      })
-      .then(() => {
-        this.status = STATUS_RECORDING;
-      })
-      .catch(() => {
-        this.status = STATUS_IDLE;
-      });
+    return new Promise((resolve, reject) => {
+      this.status = STATUS_PENDING;
+      axios
+        .post(`${RECORDING_SERVICE}/v1/recording/start`, {
+          appid: appId,
+          channel: channel,
+          key: token
+        })
+        .then(() => {
+          this.status = STATUS_RECORDING;
+          resolve()
+        })
+        .catch((err) => {
+          this.status = STATUS_IDLE;
+          reject(err)
+        });
+    })
+
   }
 
   public stop(appId: string, channel: string, token?: string): Promise<any> {

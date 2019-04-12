@@ -83,12 +83,14 @@ function App() {
   };
 
   useEffect(() => {
-    initEngine();
+    if (window.location.hash.length > 2) {
+      initEngine();
+    }
   }, []);
 
   // loading mask
   const LoadingMask = (
-    <div className="mask">
+    <div className="mask-with-bg">
       <Spin size="large" />
     </div>
   );

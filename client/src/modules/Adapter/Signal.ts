@@ -120,7 +120,8 @@ export default class Signal extends EventEmitter {
         signalLog('Error when try to logout signal', err)
       } finally {
         this.online = false;
-        this.client = null;
+        // @ts-ignore
+        this.client = window.AgoraRTM.createInstance(this.appId);
         this.channel = null;
       }
     }

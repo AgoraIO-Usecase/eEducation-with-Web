@@ -1,4 +1,4 @@
-import React, { useRef, MutableRefObject } from 'react';
+import React, { useRef, MutableRefObject, useState } from 'react';
 import { Form, Input, Radio, Button, Spin, message } from 'antd';
 
 import './index.scss';
@@ -8,6 +8,12 @@ import Adapter from '../../modules/Adapter';
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
 
+const LoadingMask = (
+  <div className="mask">
+    <Spin size="large" />
+  </div>
+);
+
 export default function(props: any) {
   const adapter: Adapter = props.adapter;
   const initEngine = props.initEngine;
@@ -16,12 +22,14 @@ export default function(props: any) {
   const channelRef: MutableRefObject<any> = useRef(null);
   const nameRef: MutableRefObject<any> = useRef(null);
   const roleRef: MutableRefObject<any> = useRef(null);
+  const [loading, setLoading] = useState(false)
 
   // ---------------- Methods or Others ----------------
   // Methods or sth else used in this component
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    setLoading(true)
     const [channel, name, role] = [
       channelRef.current.state.value,
       nameRef.current.state.value,
@@ -48,18 +56,23 @@ export default function(props: any) {
         }))
       }
 
+      setLoading(false)
+
       if (role === 0) {
         props.history.push('/classroom');
       } else {
         props.history.push('/device_test');
       }
 
+    }).catch((err: any) => {
+      message.error('Failed to join class')
+      setLoading(false)
     })
   };
 
   return (
     <div className="wrapper" id="index">
-
+      { loading && LoadingMask}
       <main className="main">
         <section className="content">
           <header>

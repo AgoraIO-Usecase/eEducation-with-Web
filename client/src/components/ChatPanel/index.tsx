@@ -6,7 +6,8 @@ import React, {
   FunctionComponent,
   useRef,
   useEffect,
-  CSSProperties
+  CSSProperties,
+  useState
 } from 'react';
 import { Button, Input } from 'antd';
 import './index.scss';
@@ -42,8 +43,8 @@ const MessageItem: FunctionComponent<Message> = props => {
 };
 
 const ChatPanel: FunctionComponent<ChatPanelProps> = props => {
-  const localMessageRef = useRef(null);
   const messageBoxRef = useRef(null);
+  const [messageToSend, setMessageToSend] = useState('')
 
   useEffect(() => {
     let box: any = messageBoxRef.current;
@@ -53,12 +54,11 @@ const ChatPanel: FunctionComponent<ChatPanelProps> = props => {
   }, [props.messages.length]);
 
   const handleSendMessage = () => {
-    const message = (localMessageRef.current as any).value;
-    if (!message) {
+    if (!messageToSend) {
       return;
     }
-    (localMessageRef.current as any).value = '';
-    props.onSendMessage && props.onSendMessage(message);
+    setMessageToSend('')
+    props.onSendMessage && props.onSendMessage(messageToSend);
   };
 
   const handleKeyPress = (evt: any) => {
@@ -72,19 +72,20 @@ const ChatPanel: FunctionComponent<ChatPanelProps> = props => {
   return (
     <div style={props.style} className={className}>
       <div className="message-box" ref={messageBoxRef}>
-        {props.messages.map(({ username, local, content }, index) => {
+        {props.messages.map(({ username, local, content }, index) => (
           <MessageItem
             key={index}
             username={username}
             local={local}
             content={content}
-          />;
-        })}
+          />
+        ))}
       </div>
       <div className="message-input">
         <Input
-          ref={localMessageRef}
           id="message"
+          onChange={e => setMessageToSend(e.target.value)}
+          value={messageToSend}
           onKeyPress={handleKeyPress}
           placeholder="Input messages..."
         />
