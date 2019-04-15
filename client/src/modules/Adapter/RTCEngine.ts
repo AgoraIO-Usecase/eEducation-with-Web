@@ -5,19 +5,21 @@
  */
 
 import AgoraRTC from "agora-rtc-sdk";
-import merge from 'lodash.merge'
+import merge from "lodash.merge";
 
-import { ClientRole, VideoProfiles, Mode, Codec, RTCEngineConfig } from "./types";
 import {
-  createLogger,
-  enhanceClient,
-  enhanceStream
-} from "../../utils";
+  ClientRole,
+  VideoProfiles,
+  Mode,
+  Codec,
+  RTCEngineConfig
+} from "./types";
+import { createLogger, enhanceClient, enhanceStream } from "../../utils";
 
 const rtcEngineLog = createLogger("[RTCEngine]", "#fff", "#13c2c2", true);
 
 class RTCEngine {
-  private appId: string
+  private appId: string;
   public config: RTCEngineConfig;
   public AgoraRTC: any;
   public localClient: any;
@@ -27,7 +29,7 @@ class RTCEngine {
 
   public constructor(appId: string) {
     this.AgoraRTC = AgoraRTC;
-    this.appId = appId
+    this.appId = appId;
     this.config = {
       channel: "",
       shareId: 2,
@@ -35,12 +37,14 @@ class RTCEngine {
       codec: Codec.VP8,
       role: ClientRole.STUDENT,
       streamId: -1
-    }
+    };
   }
 
-  public async initialize(config: RTCEngineConfig) {
+  public initialize = async (config: RTCEngineConfig) => {
     this.config = merge(this.config, config);
-    rtcEngineLog(`RTCEngine initialized with config ${JSON.stringify(this.config)}`);
+    rtcEngineLog(
+      `RTCEngine initialized with config ${JSON.stringify(this.config)}`
+    );
 
     this.localClient = await this.createClient({
       mode: this.config.mode,
@@ -51,8 +55,7 @@ class RTCEngine {
       mode: this.config.mode,
       codec: this.config.codec
     });
-    
-  }
+  };
 
   public async createClient(config: { mode?: Mode; codec?: Codec }) {
     const { mode, codec } = config;
@@ -74,7 +77,7 @@ class RTCEngine {
     cameraId?: string;
     microphoneId?: string;
     videoProfile?: string;
-    [prop: string]: any
+    [prop: string]: any;
   }) {
     const stream = enhanceStream(AgoraRTC.createStream(config));
     if (config.videoProfile) {
@@ -84,20 +87,18 @@ class RTCEngine {
     return stream;
   }
 
-  public async join(token?: string | null, constraints?: {
-    cameraId: string, microphoneId: string, videoProfile: VideoProfiles
-  }) {
-    const {
-      cameraId = '',
-      microphoneId = '',
-      videoProfile = '480p_2',
-    } = constraints || {};
+  public join = async (
+    token?: string | null,
+    constraints?: {
+      cameraId: string;
+      microphoneId: string;
+      videoProfile: VideoProfiles;
+    }
+  ) => {
+    const { cameraId = "", microphoneId = "", videoProfile = "480p_2" } =
+      constraints || {};
     // get related state
-    const {
-      channel,
-      streamId,
-      role
-    } = this.config;
+    const { channel, streamId, role } = this.config;
 
     const isAudience = role === ClientRole.AUDIENCE;
 
@@ -126,9 +127,9 @@ class RTCEngine {
     } else {
       await ClientJoinPromise();
     }
-  }
+  };
 
-  public async leave() {
+  public leave = async () => {
     try {
       const isAudience = this.config.role === ClientRole.AUDIENCE;
       if (!isAudience && this.localStream) {
@@ -138,13 +139,13 @@ class RTCEngine {
         await this.localClient.leave();
       }
     } catch (err) {
-      rtcEngineLog('Error when try to leave class', err);
-    }  finally {
+      rtcEngineLog("Error when try to leave class", err);
+    } finally {
       this.localStream = null;
     }
-  }
+  };
 
-  public async startScreenShare(token?: string | null) {
+  public startScreenShare = async (token?: string | null) => {
     const { channel, shareId } = this.config;
 
     const ShareClientInitPromise = async () => {
@@ -165,9 +166,10 @@ class RTCEngine {
     await Promise.all([ShareClientInitPromise(), ShareStreamInitPromise()]);
     this.shareStream.on("stopScreenSharing", this.stopScreenShare);
     await this.shareClient.publish(this.shareStream);
-  }
+    return this.shareStream;
+  };
 
-  public async stopScreenShare() {
+  public stopScreenShare = async () => {
     if (!this.shareStream) {
       return;
     }
@@ -176,11 +178,11 @@ class RTCEngine {
       await this.shareClient.unpublish(this.shareStream);
       await this.shareClient.leave();
     } catch (err) {
-      rtcEngineLog('Error when try to stop screen share', err);
+      rtcEngineLog("Error when try to stop screen share", err);
     } finally {
       this.shareStream = null;
     }
-  }
+  };
 }
 
 export default RTCEngine;

@@ -53,7 +53,11 @@ function App() {
               appLog("On Event: ChannelAttrUpdated", args);
               dispatch({
                 type: "updateChannelAttr",
-                channelAttr: args.channelAttr
+                channelAttr: {
+                  ...args.channelAttr,
+                  shareId: Number(args.channelAttr.shareId),
+                  isSharing: Number(args.channelAttr.isSharing)
+                }
               });
             });
             adt.signal.on("ChannelMessage", (args: any) => {
@@ -66,10 +70,6 @@ function App() {
             dispatch({ type: "updateChannelAttr", channelAttr });
             dispatch({ type: "addMember", members });
             setAdt(adt);
-            // @ts-ignore
-            window.adt = adt;
-            // @ts-ignore
-            window.dispatch = dispatch;
             resolve();
           })
           .catch(err => {

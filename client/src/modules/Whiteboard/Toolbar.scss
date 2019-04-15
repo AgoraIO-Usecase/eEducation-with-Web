@@ -1,4 +1,4 @@
-.sidebar {
+.sidebar{
   position: absolute;
   top: 0;
   height: 100%;
@@ -13,7 +13,7 @@
     /* z-index: 5; */
     left: 0;
   }
-  .bar-container {
+  .bar-container{
     background: #333333;
     height: 100%;
     border-radius: 5px;
@@ -22,14 +22,14 @@
   .unusable {
     pointer-events: none;
     cursor: pointer;
-    opacity: 0.4;
+    opacity: .4;
   }
 
-  .sidebar-btn {
+  .sidebar-btn{
     width: 44px;
     height: 44px;
     padding: 5px;
-    .sidebar-btn-content {
+    .sidebar-btn-content{
       width: 100%;
       height: 100%;
       border-radius: 5px;
@@ -37,132 +37,122 @@
       background-repeat: no-repeat;
       background-position: center;
       background-color: #565656;
-      &:hover {
-        background-color: #197ce1;
+      &:hover{
+        background-color: #197CE1;
       }
     }
-    &.selected {
-      .sidebar-btn-content {
-        background-color: #197ce1;
+    &.selected{
+      .sidebar-btn-content{
+        background-color: #197CE1;
       }
     }
 
-    &.selector {
-      .sidebar-btn-content {
+    &.selector{
+      .sidebar-btn-content{
         background-image: url(../../assets/images/icons/select.png);
       }
-      &:hover,
-      &.selected {
-        .sidebar-btn-content {
+      &:hover, &.selected{
+        .sidebar-btn-content{
           background-image: url(../../assets/images/icons/select-hover.png);
         }
       }
     }
 
-    &.pencil {
-      .sidebar-btn-content {
+    &.pencil{
+      .sidebar-btn-content{
         background-image: url(../../assets/images/icons/pencil.png);
       }
-      &:hover,
-      &.selected {
-        .sidebar-btn-content {
+      &:hover, &.selected{
+        .sidebar-btn-content{
           background-image: url(../../assets/images/icons/pencil-hover.png);
         }
       }
     }
-    &.eraser {
-      .sidebar-btn-content {
+    &.eraser{
+      .sidebar-btn-content{
         background-image: url(../../assets/images/icons/rubber.png);
       }
-      &:hover,
-      &.selected {
-        .sidebar-btn-content {
+      &:hover, &.selected{
+        .sidebar-btn-content{
           background-image: url(../../assets/images/icons/rubber-hover.png);
         }
       }
     }
-    &.rectangle {
-      .sidebar-btn-content {
+    &.rectangle{
+      .sidebar-btn-content{
         background-image: url(../../assets/images/icons/square.png);
       }
-      &:hover,
-      &.selected {
-        .sidebar-btn-content {
+      &:hover, &.selected{
+        .sidebar-btn-content{
           background-image: url(../../assets/images/icons/square-hover.png);
         }
       }
     }
-    &.ellipse {
-      .sidebar-btn-content {
+    &.ellipse{
+      .sidebar-btn-content{
         background-image: url(../../assets/images/icons/oval.png);
       }
-      &:hover,
-      &.selected {
-        .sidebar-btn-content {
+      &:hover, &.selected{
+        .sidebar-btn-content{
           background-image: url(../../assets/images/icons/oval-hover.png);
         }
       }
     }
-    &.text {
-      .sidebar-btn-content {
+    &.text{
+      .sidebar-btn-content{
         background-image: url(../../assets/images/icons/font.png);
       }
-      &:hover,
-      &.selected {
-        .sidebar-btn-content {
+      &:hover, &.selected{
+        .sidebar-btn-content{
           background-image: url(../../assets/images/icons/font-hover.png);
         }
       }
     }
-    &.color {
-      .sidebar-btn-content {
+    &.color{
+      .sidebar-btn-content{
         background-image: url(../../assets/images/icons/color.png);
       }
-      &:hover,
-      &.selected {
-        .sidebar-btn-content {
+      &:hover, &.selected{
+        .sidebar-btn-content{
           background-image: url(../../assets/images/icons/color-hover.png);
         }
       }
     }
-    &.font {
-      .sidebar-btn-content {
+    &.font{
+      .sidebar-btn-content{
         background-image: url(../../assets/images/icons/font-size.png);
       }
-      &:hover,
-      &.selected {
-        .sidebar-btn-content {
+      &:hover, &.selected{
+        .sidebar-btn-content{
           background-image: url(../../assets/images/icons/font-size-hover.png);
         }
       }
     }
-    &.add {
-      .sidebar-btn-content {
+    &.add{
+      .sidebar-btn-content{
         background-image: url(../../assets/images/icons/new-board.png);
       }
-      &:hover,
-      &.selected {
-        .sidebar-btn-content {
+      &:hover, &.selected{
+        .sidebar-btn-content{
           background-image: url(../../assets/images/icons/new-board-hover.png);
         }
       }
     }
-    &.share {
+    &.share{
       bottom: 5px;
       position: absolute;
-      .sidebar-btn-content {
+      .sidebar-btn-content{
         background-image: url(../../assets/images/icons/screen-share.png);
       }
-      &:hover,
-      &.selected {
-        .sidebar-btn-content {
+      &:hover, &.selected{
+        .sidebar-btn-content{
           background-image: url(../../assets/images/icons/screen-share-hover.png);
         }
       }
     }
   }
 
-  .color-picker {
+  .color-picker{
     position: absolute;
     /* top: 0; */
     left: 56px;

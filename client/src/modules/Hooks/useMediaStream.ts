@@ -4,7 +4,7 @@ import { createLogger } from "../../utils";
 
 const useStreamLog = createLogger("[UseStreamHook]", "#fff", "#1890ff", true);
 
-const useMediaStream = (client: any): any[] => {
+const useMediaStream = (client: any, filterId: number[]): any[] => {
   const [streamList, setStreamList] = useState<any[]>([]);
   const [count, setCount] = useState(0);
 
@@ -45,7 +45,9 @@ const useMediaStream = (client: any): any[] => {
       if (!mounted) {
         return;
       }
-      client.subscribe(evt.stream);
+      if (!filterId.includes(evt.stream.getId())) {
+        client.subscribe(evt.stream);
+      }
     };
     // add when published
     const addLocal = (evt: any) => {
@@ -82,7 +84,7 @@ const useMediaStream = (client: any): any[] => {
       }
 
     };
-  }, [0]);
+  }, [filterId]);
 
   return [streamList, count];
 };

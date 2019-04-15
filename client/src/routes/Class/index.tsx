@@ -6,7 +6,7 @@ import StreamPlayer from "agora-stream-player";
 import ClassControlPanel from "../../components/ClassControlPanel";
 import {Action, ActionType} from "../../components/UserListPanel";
 import { ClassroomHeader, RecordingButton } from "./utils";
-// import Whiteboard from "../../components/Whiteboard";
+import {WhiteboardComponent, WhiteboardAPI} from "../../modules/Whiteboard";
 import { useMediaStream } from "../../modules/Hooks";
 import RecordingAPI, {
   STATUS_IDLE,
@@ -27,11 +27,12 @@ const classLog = createLogger("[Class]", "#FFF", "#5b8c00", true);
 export default function(props: any) {
   const adapter: Adapter = props.adapter;
 
-  const { channel, uid } = adapter.config;
+  const { channel, uid, role } = adapter.config;
   const appId = adapter.appId;
   
   // ---------------- Hooks ----------------
   // Hooks used in this component
+  const [whiteToken, setWhiteToken] = useState('');
   const [recordState, setRecordState] = useState({
     isRecording: false,
     isPending: false
@@ -43,7 +44,7 @@ export default function(props: any) {
     channelAttr,
     messageList
   } = RoomControlStore.getState();
-  const [streamList, length] = useMediaStream(adapter.rtcEngine.localClient);
+  const [streamList, length] = useMediaStream(adapter.rtcEngine.localClient, [Number(channelAttr.get('shareId'))]);
   // initialize and subscribe events
   useEffect(() => {
     // join class and add local user/stream
@@ -75,6 +76,39 @@ export default function(props: any) {
     };
   }, []);
 
+  // whiteboard intialize
+  useEffect(() => {
+    let response: any;
+    let roomToken: any;
+    let room: any;
+    const boardId = channelAttr.get('whiteboardId') ? String(channelAttr.get('whiteboardId')) : ''
+    if (boardId) {
+      WhiteboardAPI.initialize(channel, { uuid: boardId }).then((res: any) => {
+        const roomToken = res.roomToken
+        // const uuid = boardId;
+        setWhiteToken(roomToken);
+      }).catch(err => {
+        classLog(`Failed to initialize whiteboard`);
+      });
+    } else {
+      WhiteboardAPI.initialize(channel).then((res: any) => {
+        const {roomToken, room} = res;
+        const uuid = room.uuid;
+        setWhiteToken(roomToken);
+        adapter.signal.request(JSON.stringify({
+          name: 'UpdateChannelAttr',
+          args: {
+            channelAttr: {
+              whiteboardId: uuid
+            }
+          }
+        }))
+      }).catch(err => {
+        classLog(`Failed to initialize whiteboard`);
+      });
+    }
+  }, [0])
+
   const chatMessages = useMemo(() => {
     return messageList.map(item => {
       return {
@@ -104,9 +138,9 @@ export default function(props: any) {
 
   const teacherName = useMemo(() => {
     if (teacherList.size) {
-      const teacherId = channelAttr.get('teacherId')
+      const teacherId = channelAttr.get('teacherId') || ''
       if (teacherId) {
-        const teacher = teacherList.get(teacherId)
+        const teacher = teacherList.get(String(teacherId))
         if (teacher) {
           console.log('name is', teacher.name)
           return teacher.name
@@ -296,7 +330,14 @@ export default function(props: any) {
       {/* Students Container */}
       <section className="students-container">{studentStreams}</section>
 
-      {/* Whiteboard (tbd) */}
+      {/* Whiteboard  */}
+      <WhiteboardComponent
+        uuid={channelAttr.get('whiteboardId') ?  String(channelAttr.get('whiteboardId')) : ''}
+        roomToken={whiteToken}
+        role={role}
+        startScreenShare={adapter.rtcEngine.startScreenShare}
+        stopScreenShare={adapter.rtcEngine.stopScreenShare}
+      />
 
       {/* Teacher container */}
       <section className="teacher-container">{teacherStream}</section>

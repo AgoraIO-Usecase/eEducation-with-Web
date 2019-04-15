@@ -30,12 +30,13 @@ class White extends EventEmitter {
 
   initialize(
     channel: string,
-    opts: {
-      limit: number;
+    options?: {
+      limit?: number;
       uuid: string;
     }
   ) {
     return new Promise((resolve, reject) => {
+      const opts: {[prop: string]: any} = options || {}
       const { uuid } = opts;
       if (!uuid) {
         Ajax.post('/v1/room', {
@@ -103,6 +104,6 @@ class White extends EventEmitter {
   }
 }
 
-const Whiteboard = new White();
+const WhiteboardAPI = new White();
 
-export default Whiteboard;
+export default WhiteboardAPI;

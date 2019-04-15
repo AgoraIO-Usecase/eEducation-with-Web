@@ -10,7 +10,7 @@ type UserInfo = {
 
 export default EasyState({
   state: {
-    channelAttr: Map<string, string>(),
+    channelAttr: Map<string, string|number>(),
     studentList: Map<string, any>(),
     teacherList: Map<string, any>(),
     messageList: [] as Array<{uid: string, message: string}>
