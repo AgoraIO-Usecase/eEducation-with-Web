@@ -1,5 +1,4 @@
-import { Button, notification, Spin, Tooltip, message } from "antd";
-import { Map } from "immutable";
+import { notification, message } from "antd";
 import React, { useState, useEffect, useMemo } from "react";
 import StreamPlayer from "agora-stream-player";
 
@@ -15,7 +14,7 @@ import RecordingAPI, {
 } from "../../modules/Recording";
 import Adapter from "../../modules/Adapter";
 import RoomControlStore from "../../store/RoomControl";
-import { createLogger, session } from "../../utils";
+import { createLogger } from "../../utils";
 import "./index.scss";
 
 notification.config({
@@ -44,6 +43,7 @@ export default function(props: any) {
     channelAttr,
     messageList
   } = RoomControlStore.getState();
+
   const dispatch = RoomControlStore.getDispatch();
   const [streamList, length] = useMediaStream(adapter.rtcEngine.localClient, id => (id !== Number(channelAttr.get('shareId') && role === 2)));
 
@@ -60,7 +60,15 @@ export default function(props: any) {
   useEffect(() => {
     // join class and add local user/stream
     adapter.rtcEngine.join();
-    adapter.signal.on('Muted', (args: any) => {
+    return () => {
+      adapter.rtcEngine.leave();
+      adapter.signal.release();
+      dispatch({type: 'removeMember', uid})
+    };
+  }, [0]);
+
+  useEffect(() => {
+    const onMuted = (args: any) => {
       if(args.type === 'video') {
         adapter.rtcEngine.localStream.disableVideo()
       } else if (args.type === 'audio') {
@@ -68,9 +76,9 @@ export default function(props: any) {
       } else if (args.type === 'chat') {
         setChatPermission(false);
       }
-      message.info(`${args.type} muted`)
-    })
-    adapter.signal.on('Unmuted', (args: any) => {
+      message.info(`${args.type} muted by ${getNameByUid(args.uid)}`)
+    }
+    const onUnmuted = (args: any) => {
       if(args.type === 'video') {
         adapter.rtcEngine.localStream.enableVideo()
       } else if (args.type === 'audio') {
@@ -78,13 +86,15 @@ export default function(props: any) {
       } else if (args.type === 'chat') {
         setChatPermission(true);
       }
-      message.info(`${args.type} unmuted`)
-    })
+      message.info(`${args.type} unmuted by ${getNameByUid(args.uid)}`)
+    }
+    adapter.signal.on('Muted', onMuted)
+    adapter.signal.on('Unmuted', onUnmuted)
     return () => {
-      adapter.rtcEngine.leave();
-      adapter.signal.release();
-    };
-  }, []);
+      adapter.signal.removeListener('Muted', onMuted)
+      adapter.signal.removeListener('Muted', onUnmuted)
+    }
+  }, [studentList, teacherList])
 
   // whiteboard intialize
   useEffect(() => {
@@ -118,16 +128,6 @@ export default function(props: any) {
       });
     }
   }, [0])
-
-  const chatMessages = useMemo(() => {
-    return messageList.map(item => {
-      return {
-        local: item.uid === uid,
-        content: item.message,
-        username: getNameByUid(item.uid)
-      };
-    });
-  }, [messageList.length]);
 
   const controlledUsers = useMemo(() => {
     return studentList.toArray().map(([uid, info]) => {
@@ -360,7 +360,7 @@ export default function(props: any) {
       {/* ClassControl */}
       <ClassControlPanel
         className="channel-container"
-        messages={chatMessages}
+        messages={messageList}
         users={controlledUsers}
         controllable={controllable}
         onAction={handleAction}

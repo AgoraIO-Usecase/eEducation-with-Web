@@ -1,5 +1,7 @@
-import EasyState from "../utils/EasyState";
 import { Map } from "immutable";
+import {createLogger, EasyState} from '../utils'
+
+const roomStoreLog = createLogger('[RoomStore]', 'white', '#0050b3', true)
 
 type UserInfo = {
   name: string;
@@ -13,7 +15,7 @@ export default EasyState({
     channelAttr: Map<string, string|number>(),
     studentList: Map<string, any>(),
     teacherList: Map<string, any>(),
-    messageList: [] as Array<{uid: string, message: string}>
+    messageList: [] as Array<{uid: string, content: string, username: string, local: boolean}>
   },
 
   actions: {
@@ -113,11 +115,16 @@ export default EasyState({
       }
     },
 
-    addChannelMessage(state, {uid, message}) {
+    addChannelMessage(state, {uid, content, local}) {
+      const user = state.studentList.merge(state.teacherList).get(uid);
+      let name = 'unknown'
+      if (user) {
+        name = user.name
+      }
       return {
         channelAttr: state.channelAttr,
         messageList: state.messageList.concat([{
-          uid: uid, message:message
+          uid: uid, content, username: name, local
         }]),
         teacherList: state.teacherList,
         studentList: state.studentList

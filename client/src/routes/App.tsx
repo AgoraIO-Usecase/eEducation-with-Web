@@ -62,8 +62,9 @@ function App() {
             adt.signal.on("ChannelMessage", (args: any) => {
               dispatch({
                 type: "addChannelMessage",
-                message: args.message,
-                uid: args.uid
+                uid: args.uid,
+                content: args.message,
+                local: args.uid === adt.config.uid
               });
             });
             dispatch({ type: "updateChannelAttr", channelAttr });
