@@ -44,14 +44,15 @@ export default function(props: any) {
     channelAttr,
     messageList
   } = RoomControlStore.getState();
-  const [streamList, length] = useMediaStream(adapter.rtcEngine.localClient, [Number(channelAttr.get('shareId'))]);
+  const dispatch = RoomControlStore.getDispatch();
+  const [streamList, length] = useMediaStream(adapter.rtcEngine.localClient, id => (id !== Number(channelAttr.get('shareId') && role === 2)));
 
   const getNameByUid = (uid: string) => {
-    const user = studentList.merge(teacherList).get(uid)
+    const user = studentList.merge(teacherList).get(uid);
     if (user) {
-      return user.name
+      return user.name;
     } else {
-      return 'Unknown'
+      return 'unknown';
     }
   }
 
@@ -67,7 +68,7 @@ export default function(props: any) {
       } else if (args.type === 'chat') {
         setChatPermission(false);
       }
-      message.info(`${args.type} muted by ${getNameByUid(args.uid)}`)
+      message.info(`${args.type} muted`)
     })
     adapter.signal.on('Unmuted', (args: any) => {
       if(args.type === 'video') {
@@ -77,12 +78,11 @@ export default function(props: any) {
       } else if (args.type === 'chat') {
         setChatPermission(true);
       }
-      message.info(`${args.type} unmuted by ${getNameByUid(args.uid)}`)
+      message.info(`${args.type} unmuted`)
     })
     return () => {
       adapter.rtcEngine.leave();
       adapter.signal.release();
-      session.clear("adapterConfig");
     };
   }, []);
 
@@ -140,7 +140,7 @@ export default function(props: any) {
         chat: info.chat
       }
     })
-  }, [studentList.size])
+  }, [studentList])
 
   const controllable = useMemo(() => {
     return channelAttr.get('teacherId') === uid
@@ -159,6 +159,15 @@ export default function(props: any) {
     }
     return '---'
   }, [channelAttr.get('teacherId'), teacherList.size])
+
+  const remoteShareStream = useMemo(() => {
+    const stream = streamList.find((item: any) => item.getId() === Number(channelAttr.get('shareId')))
+    if (stream) {
+      return stream
+    } else {
+      return null
+    }
+  }, [length])
 
   const studentStreams = useMemo(() => {
     return studentList.toArray().map(([uid, info]) => {
@@ -221,17 +230,21 @@ export default function(props: any) {
     if(action === Action.DISABLE) {
       name = 'Mute';
       target = uid;
+      dispatch({type: 'updateMember', uid, attr: {[actionType]: false}})
     } else if (action === Action.ENABLE) {
       name = 'Unmute';
       target = uid;
+      dispatch({type: 'updateMember', uid, attr: {[actionType]: true}})
     }  else if (action === Action.ENABLEALL) {
       name = 'Unmute';
       target = studentList.toArray().map(([uid, info]) => {
+        dispatch({type: 'updateMember', uid, attr: {[actionType]: true}})
         return uid
       });
     } else if (action === Action.DISABLEALL) {
       name = 'Mute';
       target = studentList.toArray().map(([uid, info]) => {
+        dispatch({type: 'updateMember', uid, attr: {[actionType]: false}})
         return uid
       });
     }
@@ -336,6 +349,7 @@ export default function(props: any) {
         uuid={channelAttr.get('whiteboardId') ?  String(channelAttr.get('whiteboardId')) : ''}
         roomToken={whiteToken}
         role={role}
+        shareStream={remoteShareStream}
         startScreenShare={adapter.rtcEngine.startScreenShare}
         stopScreenShare={adapter.rtcEngine.stopScreenShare}
       />

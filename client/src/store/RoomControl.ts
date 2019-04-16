@@ -61,6 +61,22 @@ export default EasyState({
       };
     },
 
+    updateMember(state, { uid, attr}) {
+      let tempStudentsList = state.studentList;
+      let tempTeacherList = state.teacherList;
+      if (tempStudentsList.has(uid)) {
+        tempStudentsList = tempStudentsList.update(uid, value => Object.assign({}, value, attr))
+      } else if (tempTeacherList.has(uid)) {
+        tempTeacherList = tempTeacherList.update(uid, value => Object.assign({}, value, attr))
+      }
+      return {
+        channelAttr: state.channelAttr,
+        messageList: state.messageList,
+        teacherList: tempTeacherList,
+        studentList: tempStudentsList
+      };
+    },
+
     removeMember(state, { uid }) {
       let tempStudentsList = state.studentList.delete(uid);
       let tempTeacherList = state.teacherList.delete(uid);

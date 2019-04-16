@@ -116,6 +116,7 @@ export default class Signal extends EventEmitter {
     if (this.online) {
       try {
         await this.client.logout();
+        this.removeAllListeners();
       } catch (err) {
         signalLog('Error when try to logout signal', err)
       } finally {

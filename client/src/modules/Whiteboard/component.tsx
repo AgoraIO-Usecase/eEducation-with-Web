@@ -5,13 +5,14 @@ import StreamPlayer from "agora-stream-player";
 
 import Toolbar from "./Toolbar";
 import WhiteboardAPI from "./whiteboard.api";
-import React, { FunctionComponent, useState, Fragment, useEffect } from "react";
+import React, { useMemo, FunctionComponent, useState, Fragment, useEffect } from "react";
 
 interface WhiteboardComponentProps {
   floatButtonGroup?: Element[];
   startScreenShare: () => Promise<any>;
   stopScreenShare: () => any;
   role: ClientRole;
+  shareStream?: any;
   // channel: string;
   uuid: string;
   roomToken: string
@@ -20,11 +21,20 @@ interface WhiteboardComponentProps {
 const WhiteboardComponent: FunctionComponent<
   WhiteboardComponentProps
 > = props => {
-  const [isSharing, switchSharing] = useState(false);
   const [room, setRoom] = useState<any>(null);
   const [stream, setStream] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
+
+  const displayStream = useMemo(() => {
+    if (props.shareStream) {
+      return props.shareStream
+    } else if (stream) {
+      return stream
+    } else {
+      return null
+    }
+  }, [props.shareStream, stream])
 
   useEffect(() => {
     subscribeWhiteboardEvents();
@@ -70,14 +80,13 @@ const WhiteboardComponent: FunctionComponent<
   };
 
   const handleShareScreen = () => {
-    if (isSharing) {
+    if (stream) {
       props.stopScreenShare();
-      switchSharing(false);
+      setStream(null)
     } else {
       props.startScreenShare().then((stream: any) => {
-        stream.on("stopScreenSharing", () => switchSharing(false));
+        stream.on("stopScreenSharing", () => setStream(null));
         setStream(stream);
-        switchSharing(true);
       });
     }
   };
@@ -138,7 +147,7 @@ const WhiteboardComponent: FunctionComponent<
       <div
         className="board"
         id="whiteboard"
-        style={{ display: isSharing ? "none" : "block" }}
+        style={{ display: displayStream ? "none" : "block" }}
       >
         {/* intializing mask */}
         {!room ? (
@@ -171,7 +180,7 @@ const WhiteboardComponent: FunctionComponent<
       </div>
 
       {/* shareboard */}
-      {stream && <StreamPlayer fit="contain" stream={stream} video={true} audio={false} autoChange={false} className="board" id="shareboard" />}
+      {displayStream && <StreamPlayer fit="contain" stream={displayStream} video={true} audio={false} autoChange={false} className="board" id="shareboard" />}
 
       {/* toolbar */}
       {props.role !== 0  && (
