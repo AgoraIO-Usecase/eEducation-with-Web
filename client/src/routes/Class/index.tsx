@@ -45,6 +45,16 @@ export default function(props: any) {
     messageList
   } = RoomControlStore.getState();
   const [streamList, length] = useMediaStream(adapter.rtcEngine.localClient, [Number(channelAttr.get('shareId'))]);
+
+  const getNameByUid = (uid: string) => {
+    const user = studentList.merge(teacherList).get(uid)
+    if (user) {
+      return user.name
+    } else {
+      return 'Unknown'
+    }
+  }
+
   // initialize and subscribe events
   useEffect(() => {
     // join class and add local user/stream
@@ -300,15 +310,6 @@ export default function(props: any) {
         });
     }
   };
-
-  const getNameByUid = (uid: string) => {
-    const user = studentList.merge(teacherList).get(uid)
-    if (user) {
-      return user.name
-    } else {
-      return 'Unknown'
-    }
-  }
 
   return (
     <div className="wrapper" id="classroom">

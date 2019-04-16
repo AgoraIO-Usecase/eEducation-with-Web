@@ -7,7 +7,7 @@ import EventEmitter from 'wolfy87-eventemitter';
  * This is only used for demo!!!
  * DO NOT USE IT IN PRODUCTION ENVIRONMENT!!!
  */
-const WHITEBOARD_URL = 'http://123.155.153.85:3785';
+const WHITEBOARD_URL = 'https://webdemo.agora.io/edu_whiteboard';
 const Ajax = axios.create({
   baseURL: WHITEBOARD_URL
 });

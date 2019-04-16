@@ -12,7 +12,7 @@ import axios from 'axios';
  * This is only used for demo!!!
  * DO NOT USE IT IN PRODUCTION ENVIRONMENT!!!
  */
-const RECORDING_SERVICE = 'http://123.155.153.85:3233';
+const RECORDING_SERVICE = 'https://webdemo.agora.io/edu_recording';
 
 export const STATUS_RECORDING = Symbol('recording'); // doing recording
 export const STATUS_PENDING = Symbol('pending'); // posting request for start/stop

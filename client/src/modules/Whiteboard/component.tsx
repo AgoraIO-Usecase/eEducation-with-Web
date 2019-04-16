@@ -171,7 +171,7 @@ const WhiteboardComponent: FunctionComponent<
       </div>
 
       {/* shareboard */}
-      {stream && <StreamPlayer className="board" id="shareboard" />}
+      {stream && <StreamPlayer fit="contain" stream={stream} video={true} audio={false} autoChange={false} className="board" id="shareboard" />}
 
       {/* toolbar */}
       {props.role !== 0  && (

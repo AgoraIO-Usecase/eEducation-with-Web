@@ -4,7 +4,7 @@ import { UserAttr, ChannelAttr, SignalConfig } from "./types";
 
 import createLogger from "../../utils/logger";
 // for demo only:wq
-const ROOM_CONTROL_SERVICE = "http://123.155.153.87:3663/sentry";
+const ROOM_CONTROL_SERVICE = "https://webdemo.agora.io/edu_control";
 const signalLog = createLogger("[Signal]", "#FFF", "#eb2f96", true);
 const reponseArray = [
   "JoinSuccess",
@@ -46,7 +46,7 @@ export default class Signal extends EventEmitter {
       this.channel = this.client.createChannel(channel);
       await this.channel.join();
       this.online = true;
-      const { data } = await axios.get(`${ROOM_CONTROL_SERVICE}/`);
+      const { data } = await axios.get(`${ROOM_CONTROL_SERVICE}/sentry`);
       signalLog(`Get response from sentry ${data}`);
       this.sentryId = data;
       this.client.on(
