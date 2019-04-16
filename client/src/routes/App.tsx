@@ -10,7 +10,6 @@ import DeviceTestPage from "./DeviceTest";
 import ClassroomPage from "./Class";
 
 import { session, createLogger } from "../utils";
-import { AdapterConfig } from "../modules/Adapter/types";
 
 if (!process.env.REACT_APP_AGORA_APPID) {
   throw new Error("App ID not set.");

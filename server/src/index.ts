@@ -1,4 +1,5 @@
 import express from "express";
+import bodyParser from "body-parser";
 import cors from 'cors';
 
 import Sentry from './components/sentry'
@@ -8,11 +9,13 @@ require("dotenv").config();
 
 const sentry = new Sentry(process.env.AGORA_APPID || '')
 const app = express();
-app.use(cors());
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors());
 sentry.init();
 
-app.get("/", async (req, res) => {
+app.get("/sentry", async (req, res) => {
   if (!sentry.online) {
     log.info('Initializing Sentry...')
     try {
@@ -24,6 +27,17 @@ app.get("/", async (req, res) => {
   }
   res.send(sentry.uid)
 });
+
+app.post("/simple_auth", async (req, res) => {
+  const {cname, role} = req.body;
+  const channelAttr = await sentry.cache.getAllChannelAttr(cname);
+  if (channelAttr.teacherId && role === 2) {
+    res.json({
+      result: false,
+      info: "Teacher already exists in this class"
+    })
+  }
+})
 
 app.get("/user/:uid", async (req, res) => {
   const uid = req.params.uid;

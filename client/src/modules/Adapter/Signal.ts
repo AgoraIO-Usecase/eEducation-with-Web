@@ -4,7 +4,7 @@ import { UserAttr, ChannelAttr, SignalConfig } from "./types";
 
 import createLogger from "../../utils/logger";
 
-const ROOM_CONTROL_SERVICE = "http://localhost:8080";
+const ROOM_CONTROL_SERVICE = "http://localhost:8080/sentry";
 const signalLog = createLogger("[Signal]", "#FFF", "#eb2f96", true);
 const reponseArray = [
   "JoinSuccess",
