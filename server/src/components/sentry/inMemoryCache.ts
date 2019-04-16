@@ -22,13 +22,8 @@ export default class ChannelCache {
   constructor() {
     this.redisClient = createRedisClient({
       prefix: process.env.AGORA_APPID,
-<<<<<<< HEAD
       host: process.env.REDIS_HOST,
       port: Number(process.env.REDIS_PORT)
-=======
-      url: process.env.REDIS_URL,
-      port: process.env.REDIS_PORT
->>>>>>> 8411b9421c5919e1f8b1be177ebdb1128aba6032
     });
     this.channelsHash = `channels`;
     // this.usersHash = `${this.namespace}-users`;
