@@ -3,8 +3,8 @@ import EventEmitter from "wolfy87-eventemitter";
 import { UserAttr, ChannelAttr, SignalConfig } from "./types";
 
 import createLogger from "../../utils/logger";
-
-const ROOM_CONTROL_SERVICE = "http://localhost:8080/sentry";
+// for demo only:wq
+const ROOM_CONTROL_SERVICE = "http://123.155.153.87:3663/sentry";
 const signalLog = createLogger("[Signal]", "#FFF", "#eb2f96", true);
 const reponseArray = [
   "JoinSuccess",
